@@ -1204,7 +1204,7 @@ const MasterScheduleSystem = () => {
                                 )}
                               </div>
                               
-                              {editMode && !isOpen ? (
+                              {editMode && (
                                 <div className="space-y-2">
                                   <select
                                     value={assignment || ''}
@@ -1220,90 +1220,90 @@ const MasterScheduleSystem = () => {
                                       <option key={staff} value={staff}>{staff}</option>
                                     ))}
                                   </select>
-                                                                      <div className="space-y-2">
-                                      <div className="flex items-center gap-2">
-                                        <label className="text-xs text-white opacity-75">Start:</label>
-                                        <input
-                                          type="text"
-                                          placeholder="7:30a"
-                                          value={hasPendingChanges(day, location, currentWeek) ? 
-                                            (pendingChanges[`${currentWeek}-${day}-${location}`]?.time?.start || getCustomShiftTime(day, location, currentWeek)?.start || '') :
-                                            (getCustomShiftTime(day, location, currentWeek)?.start || '')
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <label className="text-xs text-white opacity-75">Start:</label>
+                                      <input
+                                        type="text"
+                                        placeholder="7:30a"
+                                        value={hasPendingChanges(day, location, currentWeek) ? 
+                                          (pendingChanges[`${currentWeek}-${day}-${location}`]?.time?.start || getCustomShiftTime(day, location, currentWeek)?.start || '') :
+                                          (getCustomShiftTime(day, location, currentWeek)?.start || '')
+                                        }
+                                        onChange={(e) => {
+                                          console.log('Start time changed:', e.target.value, 'Length:', e.target.value.length, 'Char codes:', [...e.target.value].map(c => c.charCodeAt(0)));
+                                          const currentTime = getCustomShiftTime(day, location, currentWeek) || { start: '', end: '' };
+                                          const newTime = { ...currentTime, start: e.target.value };
+                                          console.log('New time object:', newTime);
+                                          
+                                          // Store as pending change for display
+                                          const changeKey = `${currentWeek}-${day}-${location}`;
+                                          setPendingChanges(prev => ({
+                                            ...prev,
+                                            [changeKey]: { ...prev[changeKey], time: newTime }
+                                          }));
+                                          
+                                          // Auto-save immediately with the changes
+                                          const changesToSave = { time: newTime };
+                                          if (newTime.start && newTime.end) {
+                                            const calculatedHours = calculateHoursFromTimes(newTime.start, newTime.end);
+                                            changesToSave.duration = calculatedHours;
                                           }
-                                          onChange={(e) => {
-                                            console.log('Start time changed:', e.target.value, 'Length:', e.target.value.length, 'Char codes:', [...e.target.value].map(c => c.charCodeAt(0)));
-                                            const currentTime = getCustomShiftTime(day, location, currentWeek) || { start: '', end: '' };
-                                            const newTime = { ...currentTime, start: e.target.value };
-                                            console.log('New time object:', newTime);
-                                            
-                                            // Store as pending change for display
-                                            const changeKey = `${currentWeek}-${day}-${location}`;
-                                            setPendingChanges(prev => ({
-                                              ...prev,
-                                              [changeKey]: { ...prev[changeKey], time: newTime }
-                                            }));
-                                            
-                                            // Auto-save immediately with the changes
-                                            const changesToSave = { time: newTime };
-                                            if (newTime.start && newTime.end) {
-                                              const calculatedHours = calculateHoursFromTimes(newTime.start, newTime.end);
-                                              changesToSave.duration = calculatedHours;
-                                            }
-                                            saveShiftChanges(day, location, currentWeek, changesToSave);
-                                          }}
-                                          className="w-20 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
-                                        />
-                                        <label className="text-xs text-white opacity-75">End:</label>
-                                        <input
-                                          type="text"
-                                          placeholder="7:30p"
-                                          value={hasPendingChanges(day, location, currentWeek) ? 
-                                            (pendingChanges[`${currentWeek}-${day}-${location}`]?.time?.end || getCustomShiftTime(day, location, currentWeek)?.end || '') :
-                                            (getCustomShiftTime(day, location, currentWeek)?.end || '')
+                                          saveShiftChanges(day, location, currentWeek, changesToSave);
+                                        }}
+                                        className="w-20 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
+                                      />
+                                      <label className="text-xs text-white opacity-75">End:</label>
+                                      <input
+                                        type="text"
+                                        placeholder="7:30p"
+                                        value={hasPendingChanges(day, location, currentWeek) ? 
+                                          (pendingChanges[`${currentWeek}-${day}-${location}`]?.time?.end || getCustomShiftTime(day, location, currentWeek)?.end || '') :
+                                          (getCustomShiftTime(day, location, currentWeek)?.end || '')
+                                        }
+                                        onChange={(e) => {
+                                          console.log('End time changed:', e.target.value, 'Length:', e.target.value.length, 'Char codes:', [...e.target.value].map(c => c.charCodeAt(0)));
+                                          const currentTime = getCustomShiftTime(day, location, currentWeek) || { start: '', end: '' };
+                                          const newTime = { ...currentTime, end: e.target.value };
+                                          console.log('New time object:', newTime);
+                                          
+                                          // Store as pending change for display
+                                          const changeKey = `${currentWeek}-${day}-${location}`;
+                                          setPendingChanges(prev => ({
+                                            ...prev,
+                                            [changeKey]: { ...prev[changeKey], time: newTime }
+                                          }));
+                                          
+                                          // Auto-save immediately with the changes
+                                          const changesToSave = { time: newTime };
+                                          if (newTime.start && newTime.end) {
+                                            const calculatedHours = calculateHoursFromTimes(newTime.start, newTime.end);
+                                            changesToSave.duration = calculatedHours;
                                           }
-                                          onChange={(e) => {
-                                            console.log('End time changed:', e.target.value, 'Length:', e.target.value.length, 'Char codes:', [...e.target.value].map(c => c.charCodeAt(0)));
-                                            const currentTime = getCustomShiftTime(day, location, currentWeek) || { start: '', end: '' };
-                                            const newTime = { ...currentTime, end: e.target.value };
-                                            console.log('New time object:', newTime);
-                                            
-                                            // Store as pending change for display
-                                            const changeKey = `${currentWeek}-${day}-${location}`;
-                                            setPendingChanges(prev => ({
-                                              ...prev,
-                                              [changeKey]: { ...prev[changeKey], time: newTime }
-                                            }));
-                                            
-                                            // Auto-save immediately with the changes
-                                            const changesToSave = { time: newTime };
-                                            if (newTime.start && newTime.end) {
-                                              const calculatedHours = calculateHoursFromTimes(newTime.start, newTime.end);
-                                              changesToSave.duration = calculatedHours;
-                                            }
-                                            saveShiftChanges(day, location, currentWeek, changesToSave);
-                                          }}
-                                          className="w-20 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
-                                        />
-                                      </div>
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-xs text-white opacity-75">
-                                          Hours: {(() => {
-                                            if (hasPendingChanges(day, location, currentWeek)) {
-                                              const pending = pendingChanges[`${currentWeek}-${day}-${location}`];
-                                              if (pending?.time?.start && pending?.time?.end) {
-                                                const calculatedHours = calculateHoursFromTimes(pending.time.start, pending.time.end);
-                                                return isNaN(calculatedHours) ? '0' : calculatedHours;
-                                              }
-                                              return pending?.duration || 0;
-                                            }
-                                            return customDuration;
-                                          })()}h
-                                        </span>
-
-                                      </div>
+                                          saveShiftChanges(day, location, currentWeek, changesToSave);
+                                        }}
+                                        className="w-20 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
+                                      />
                                     </div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-white opacity-75">
+                                        Hours: {(() => {
+                                          if (hasPendingChanges(day, location, currentWeek)) {
+                                            const pending = pendingChanges[`${currentWeek}-${day}-${location}`];
+                                            if (pending?.time?.start && pending?.time?.end) {
+                                              const calculatedHours = calculateHoursFromTimes(pending.time.start, pending.time.end);
+                                              return isNaN(calculatedHours) ? '0' : calculatedHours;
+                                            }
+                                            return pending?.duration || 0;
+                                          }
+                                          return customDuration;
+                                        })()}h
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
-                              ) : (
+                              )}
+                              {!editMode && assignment && (
                                 <div>
                                   <div className="font-semibold flex items-center justify-between">
                                     <strong>{assignment}</strong>
