@@ -17,7 +17,13 @@ const PASSWORDS = {
 const MasterScheduleSystem = () => {
   // State management
   const [darkMode, setDarkMode] = useState(false);
-  const [currentWeek, setCurrentWeek] = useState(1);
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    const today = new Date();
+    const startDate = new Date(2024, 7, 5); // August 5th, 2024
+    const diffTime = today.getTime() - startDate.getTime();
+    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    return Math.max(1, Math.min(4, diffWeeks + 1)); // Keep within 1-4 range
+  });
   const [editMode, setEditMode] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showPickupShifts, setShowPickupShifts] = useState(false);
@@ -154,7 +160,7 @@ const MasterScheduleSystem = () => {
     monday.setDate(monday.getDate() + (targetWeek * 7));
     
     const dates = [];
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       const date = new Date(monday);
       date.setDate(monday.getDate() + i);
       dates.push(date);
@@ -168,6 +174,16 @@ const MasterScheduleSystem = () => {
     const firstDate = dates[0];
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     return { month: months[firstDate.getMonth()], year: firstDate.getFullYear() };
+  };
+
+  // Function to get the current week number based on today's date
+  // eslint-disable-next-line no-unused-vars
+  const getCurrentWeekNumber = () => {
+    const today = new Date();
+    const startDate = new Date(2024, 7, 5); // August 5th, 2024
+    const diffTime = today.getTime() - startDate.getTime();
+    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    return Math.max(1, Math.min(4, diffWeeks + 1)); // Keep within 1-4 range
   };
 
   const formatDate = (date) => {
@@ -570,6 +586,23 @@ const MasterScheduleSystem = () => {
           <p className={`text-xs lg:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1 lg:mt-2`}>
             {currentMonthYear.month} {currentMonthYear.year} • 4-Week Rotation • Start: Monday, August 5th, 2024
           </p>
+          {!isAuthenticated && (
+            <div className={`mt-3 p-3 rounded-lg ${darkMode ? 'bg-yellow-900 bg-opacity-30 border border-yellow-600' : 'bg-yellow-50 border border-yellow-200'}`}>
+              <p className={`text-xs ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
+                ⚠️ <strong>Important:</strong> Schedules may change periodically. Please check this app daily for updates, 
+                especially for call-offs, PTO requests, and pickup opportunities. Your schedule is subject to change 
+                based on operational needs and staff availability.
+              </p>
+            </div>
+          )}
+          {isAuthenticated && (
+            <div className={`mt-3 p-3 rounded-lg ${darkMode ? 'bg-blue-900 bg-opacity-30 border border-blue-600' : 'bg-blue-50 border border-blue-200'}`}>
+              <p className={`text-xs ${darkMode ? 'text-blue-200' : 'text-blue-800'}`}>
+                📅 <strong>Current Week:</strong> Week {currentWeek} of 4 • {currentMonthYear.month} {currentMonthYear.year} • 
+                Schedule automatically progresses through months. The 4-week rotation repeats continuously.
+              </p>
+            </div>
+          )}
           
           <button
             onClick={handleLogout}
