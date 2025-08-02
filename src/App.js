@@ -31,7 +31,7 @@ const MasterScheduleSystem = () => {
     const saved = localStorage.getItem('safetySchedule_callOffs');
     return saved ? JSON.parse(saved) : {};
   });
-  const [ptoRequests] = useState(() => {
+  const [ptoRequests, setPtoRequests] = useState(() => {
     const saved = localStorage.getItem('safetySchedule_ptoRequests');
     return saved ? JSON.parse(saved) : {};
   });
@@ -704,38 +704,33 @@ const MasterScheduleSystem = () => {
           </div>
         )}
 
-        {/* Call-Off Manager Panel */}
+        {/* Call-Off & PTO Manager Panel */}
         {showCallOffManager && isAuthenticated && (
           <div className={`mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
             <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               <CalendarX className="w-5 h-5" />
-              Call-Off Manager
+              Call-Off & PTO Manager
             </h3>
             
-            {/* Add Call-Off */}
+            {/* Add Request */}
             <div className="mb-6">
-              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Add Call-Off</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Add Request</h4>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input
                   type="date"
                   onChange={(e) => setCurrentDate(new Date(e.target.value))}
                   className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
                 />
                 <select
-                  onChange={(e) => {
-                    const selectedStaff = e.target.value;
-                    if (selectedStaff) {
-                      const dateKey = currentDate.toISOString().split('T')[0];
-                      setCallOffs(prev => {
-                        const updated = {
-                          ...prev,
-                          [dateKey]: [...(prev[dateKey] || []), selectedStaff]
-                        };
-                        localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
-                        return updated;
-                      });
-                    }
-                  }}
+                  id="requestType"
+                  className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                >
+                  <option value="">Request Type</option>
+                  <option value="calloff">Call-Off</option>
+                  <option value="pto">PTO Request</option>
+                </select>
+                <select
+                  id="staffSelect"
                   className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
                 >
                   <option value="">Select Staff</option>
@@ -743,76 +738,193 @@ const MasterScheduleSystem = () => {
                     <option key={staff} value={staff}>{staff}</option>
                   ))}
                 </select>
+                <input
+                  type="text"
+                  id="reasonInput"
+                  placeholder="Reason (optional)"
+                  className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                />
+              </div>
+              <div className="mt-4 flex gap-2">
                 <button
                   onClick={() => {
                     const dateKey = currentDate.toISOString().split('T')[0];
-                    setCallOffs(prev => {
-                      const updated = {
-                        ...prev,
-                        [dateKey]: [...(prev[dateKey] || []), 'Temporary']
-                      };
-                      localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
-                      return updated;
-                    });
+                    const requestType = document.getElementById('requestType').value;
+                    const staff = document.getElementById('staffSelect').value;
+                    const reason = document.getElementById('reasonInput').value;
+                    
+                    if (!requestType || !staff) return;
+                    
+                    const request = {
+                      type: requestType,
+                      staff: staff,
+                      reason: reason || 'No reason provided',
+                      date: dateKey,
+                      timestamp: new Date().toISOString()
+                    };
+                    
+                    if (requestType === 'calloff') {
+                      setCallOffs(prev => {
+                        const updated = {
+                          ...prev,
+                          [dateKey]: [...(prev[dateKey] || []), request]
+                        };
+                        localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                        return updated;
+                      });
+                    } else if (requestType === 'pto') {
+                      setPtoRequests(prev => {
+                        const updated = {
+                          ...prev,
+                          [dateKey]: [...(prev[dateKey] || []), request]
+                        };
+                        localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                        return updated;
+                      });
+                    }
+                    
+                    // Clear inputs
+                    document.getElementById('requestType').value = '';
+                    document.getElementById('staffSelect').value = '';
+                    document.getElementById('reasonInput').value = '';
                   }}
                   className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                 >
-                  Add Call-Off
+                  Add Request
                 </button>
               </div>
             </div>
 
-            {/* Current Call-Offs */}
-            <div>
-              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Current Call-Offs</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(callOffs).map(([date, staffList]) => (
-                  <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                        {new Date(date).toLocaleDateString()}
-                      </span>
-                      <button
-                        onClick={() => {
-                          setCallOffs(prev => {
-                            const updated = { ...prev };
-                            delete updated[date];
-                            localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
-                            return updated;
-                          });
-                        }}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        Clear All
-                      </button>
+            {/* Current Requests */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Call-Offs */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Call-Offs ({Object.values(callOffs).flat().length})
+                </h4>
+                <div className="space-y-3">
+                  {Object.entries(callOffs).map(([date, requests]) => (
+                    <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setCallOffs(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {requests.map((request, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {typeof request === 'string' ? request : request.staff}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setCallOffs(prev => {
+                                    const updated = {
+                                      ...prev,
+                                      [date]: prev[date].filter((_, i) => i !== index)
+                                    };
+                                    if (updated[date].length === 0) {
+                                      delete updated[date];
+                                    }
+                                    localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                                    return updated;
+                                  });
+                                }}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            {typeof request === 'object' && request.reason && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Reason: {request.reason}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      {staffList.map((staff, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{staff}</span>
-                          <button
-                            onClick={() => {
-                              setCallOffs(prev => {
-                                const updated = {
-                                  ...prev,
-                                  [date]: prev[date].filter((_, i) => i !== index)
-                                };
-                                if (updated[date].length === 0) {
-                                  delete updated[date];
-                                }
-                                localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
-                                return updated;
-                              });
-                            }}
-                            className="text-red-500 hover:text-red-700 text-xs"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
+                  ))}
+                </div>
+              </div>
+
+              {/* PTO Requests */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  PTO Requests ({Object.values(ptoRequests).flat().length})
+                </h4>
+                <div className="space-y-3">
+                  {Object.entries(ptoRequests).map(([date, requests]) => (
+                    <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setPtoRequests(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {requests.map((request, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {typeof request === 'string' ? request : request.staff}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setPtoRequests(prev => {
+                                    const updated = {
+                                      ...prev,
+                                      [date]: prev[date].filter((_, i) => i !== index)
+                                    };
+                                    if (updated[date].length === 0) {
+                                      delete updated[date];
+                                    }
+                                    localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                                    return updated;
+                                  });
+                                }}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            {typeof request === 'object' && request.reason && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Reason: {request.reason}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -959,6 +1071,84 @@ const MasterScheduleSystem = () => {
                     <p className="text-sm mt-1">Check call-offs or PTO requests</p>
                   </div>
                 )}
+
+                {/* Staff Request Feature */}
+                <div className={`mt-6 p-4 rounded-lg border ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
+                  <h4 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Request Time Off
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <input
+                      type="date"
+                      id="staffRequestDate"
+                      className={`p-2 rounded border ${darkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-black'}`}
+                    />
+                    <select
+                      id="staffRequestType"
+                      className={`p-2 rounded border ${darkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-black'}`}
+                    >
+                      <option value="">Request Type</option>
+                      <option value="calloff">Call-Off</option>
+                      <option value="pto">PTO Request</option>
+                    </select>
+                    <input
+                      type="text"
+                      id="staffRequestReason"
+                      placeholder="Reason (optional)"
+                      className={`p-2 rounded border ${darkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-black'}`}
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      const date = document.getElementById('staffRequestDate').value;
+                      const requestType = document.getElementById('staffRequestType').value;
+                      const reason = document.getElementById('staffRequestReason').value;
+                      
+                      if (!date || !requestType) {
+                        alert('Please select a date and request type');
+                        return;
+                      }
+                      
+                      const request = {
+                        type: requestType,
+                        staff: loggedInStaff,
+                        reason: reason || 'No reason provided',
+                        date: date,
+                        timestamp: new Date().toISOString()
+                      };
+                      
+                      if (requestType === 'calloff') {
+                        setCallOffs(prev => {
+                          const updated = {
+                            ...prev,
+                            [date]: [...(prev[date] || []), request]
+                          };
+                          localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                          return updated;
+                        });
+                      } else if (requestType === 'pto') {
+                        setPtoRequests(prev => {
+                          const updated = {
+                            ...prev,
+                            [date]: [...(prev[date] || []), request]
+                          };
+                          localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                          return updated;
+                        });
+                      }
+                      
+                      // Clear inputs
+                      document.getElementById('staffRequestDate').value = '';
+                      document.getElementById('staffRequestType').value = '';
+                      document.getElementById('staffRequestReason').value = '';
+                      
+                      alert('Request submitted successfully!');
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Submit Request
+                  </button>
+                </div>
               </div>
             ) : viewMode === 'master' ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
