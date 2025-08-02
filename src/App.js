@@ -1104,24 +1104,75 @@ const MasterScheduleSystem = () => {
                               <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                                 {typeof request === 'string' ? request : request.staff}
                               </span>
-                              <button
-                                onClick={() => {
-                                  setCallOffs(prev => {
-                                    const updated = {
-                                      ...prev,
-                                      [date]: prev[date].filter((_, i) => i !== index)
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    // Approve the request
+                                    const approvedRequest = {
+                                      ...request,
+                                      status: 'approved',
+                                      approvedAt: new Date().toISOString()
                                     };
-                                    if (updated[date].length === 0) {
-                                      delete updated[date];
-                                    }
-                                    localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
-                                    return updated;
-                                  });
-                                }}
-                                className="text-red-500 hover:text-red-700 text-xs"
-                              >
-                                Remove
-                              </button>
+                                    
+                                    // Update the request status
+                                    setCallOffs(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].map((req, i) => i === index ? approvedRequest : req)
+                                      };
+                                      localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                    
+                                    alert(`Approved ${request.staff}'s call-off request`);
+                                  }}
+                                  className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    // Deny the request
+                                    const deniedRequest = {
+                                      ...request,
+                                      status: 'denied',
+                                      deniedAt: new Date().toISOString()
+                                    };
+                                    
+                                    setCallOffs(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].map((req, i) => i === index ? deniedRequest : req)
+                                      };
+                                      localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                    
+                                    alert(`Denied ${request.staff}'s call-off request`);
+                                  }}
+                                  className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                >
+                                  Deny
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setCallOffs(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].filter((_, i) => i !== index)
+                                      };
+                                      if (updated[date].length === 0) {
+                                        delete updated[date];
+                                      }
+                                      localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                             {typeof request === 'object' && request.reason && (
                               <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -1169,24 +1220,74 @@ const MasterScheduleSystem = () => {
                               <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                                 {typeof request === 'string' ? request : request.staff}
                               </span>
-                              <button
-                                onClick={() => {
-                                  setPtoRequests(prev => {
-                                    const updated = {
-                                      ...prev,
-                                      [date]: prev[date].filter((_, i) => i !== index)
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    // Approve the request
+                                    const approvedRequest = {
+                                      ...request,
+                                      status: 'approved',
+                                      approvedAt: new Date().toISOString()
                                     };
-                                    if (updated[date].length === 0) {
-                                      delete updated[date];
-                                    }
-                                    localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
-                                    return updated;
-                                  });
-                                }}
-                                className="text-red-500 hover:text-red-700 text-xs"
-                              >
-                                Remove
-                              </button>
+                                    
+                                    setPtoRequests(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].map((req, i) => i === index ? approvedRequest : req)
+                                      };
+                                      localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                    
+                                    alert(`Approved ${request.staff}'s PTO request`);
+                                  }}
+                                  className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    // Deny the request
+                                    const deniedRequest = {
+                                      ...request,
+                                      status: 'denied',
+                                      deniedAt: new Date().toISOString()
+                                    };
+                                    
+                                    setPtoRequests(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].map((req, i) => i === index ? deniedRequest : req)
+                                      };
+                                      localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                    
+                                    alert(`Denied ${request.staff}'s PTO request`);
+                                  }}
+                                  className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                >
+                                  Deny
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setPtoRequests(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].filter((_, i) => i !== index)
+                                      };
+                                      if (updated[date].length === 0) {
+                                        delete updated[date];
+                                      }
+                                      localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                             {typeof request === 'object' && request.reason && (
                               <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -1234,24 +1335,74 @@ const MasterScheduleSystem = () => {
                               <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                                 {request.staff} - {request.location}
                               </span>
-                              <button
-                                onClick={() => {
-                                  setEarlyArrivalRequests(prev => {
-                                    const updated = {
-                                      ...prev,
-                                      [date]: prev[date].filter((_, i) => i !== index)
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    // Approve the request
+                                    const approvedRequest = {
+                                      ...request,
+                                      status: 'approved',
+                                      approvedAt: new Date().toISOString()
                                     };
-                                    if (updated[date].length === 0) {
-                                      delete updated[date];
-                                    }
-                                    localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
-                                    return updated;
-                                  });
-                                }}
-                                className="text-red-500 hover:text-red-700 text-xs"
-                              >
-                                Remove
-                              </button>
+                                    
+                                    setEarlyArrivalRequests(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].map((req, i) => i === index ? approvedRequest : req)
+                                      };
+                                      localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                    
+                                    alert(`Approved ${request.staff}'s early arrival request`);
+                                  }}
+                                  className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    // Deny the request
+                                    const deniedRequest = {
+                                      ...request,
+                                      status: 'denied',
+                                      deniedAt: new Date().toISOString()
+                                    };
+                                    
+                                    setEarlyArrivalRequests(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].map((req, i) => i === index ? deniedRequest : req)
+                                      };
+                                      localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                    
+                                    alert(`Denied ${request.staff}'s early arrival request`);
+                                  }}
+                                  className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                >
+                                  Deny
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEarlyArrivalRequests(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].filter((_, i) => i !== index)
+                                      };
+                                      if (updated[date].length === 0) {
+                                        delete updated[date];
+                                      }
+                                      localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                             <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                               {request.time ? (
@@ -1439,8 +1590,107 @@ const MasterScheduleSystem = () => {
             {/* Staff member logged in - show only their schedule */}
             {loggedInStaff && !isAuthenticated ? (
               <div className="space-y-4">
-                <div className={`p-4 rounded-lg ${staffInfo[loggedInStaff].color} text-white`}>
-                  <h3 className="text-lg font-semibold mb-2">{loggedInStaff}'s Schedule - Week {currentWeek}</h3>
+                                  <div className={`p-4 rounded-lg ${staffInfo[loggedInStaff].color} text-white`}>
+                    <h3 className="text-lg font-semibold mb-2">{loggedInStaff}'s Schedule - Week {currentWeek}</h3>
+                    
+                    {/* Request Status Log */}
+                    <div className="mt-4 p-3 bg-white bg-opacity-20 rounded-lg">
+                      <h4 className="font-semibold mb-2">📋 My Request Status</h4>
+                      <div className="space-y-2 text-sm">
+                        {(() => {
+                          const allRequests = [];
+                          
+                          // Get call-off requests
+                          Object.entries(callOffs).forEach(([date, requests]) => {
+                            requests.forEach(request => {
+                              if (typeof request === 'object' && request.staff === loggedInStaff) {
+                                allRequests.push({
+                                  type: 'Call-Off',
+                                  date: date,
+                                  status: request.status || 'pending',
+                                  reason: request.reason,
+                                  timestamp: request.timestamp
+                                });
+                              }
+                            });
+                          });
+                          
+                          // Get PTO requests
+                          Object.entries(ptoRequests).forEach(([date, requests]) => {
+                            requests.forEach(request => {
+                              if (typeof request === 'object' && request.staff === loggedInStaff) {
+                                allRequests.push({
+                                  type: 'PTO Request',
+                                  date: date,
+                                  status: request.status || 'pending',
+                                  reason: request.reason,
+                                  timestamp: request.timestamp
+                                });
+                              }
+                            });
+                          });
+                          
+                          // Get pickup requests
+                          Object.entries(pickupRequests).forEach(([date, requests]) => {
+                            requests.forEach(request => {
+                              if (typeof request === 'object' && request.staff === loggedInStaff) {
+                                allRequests.push({
+                                  type: 'Pickup Request',
+                                  date: date,
+                                  status: request.status || 'pending',
+                                  reason: request.reason,
+                                  time: request.time,
+                                  timestamp: request.timestamp
+                                });
+                              }
+                            });
+                          });
+                          
+                          // Get early arrival requests
+                          Object.entries(earlyArrivalRequests).forEach(([date, requests]) => {
+                            requests.forEach(request => {
+                              if (typeof request === 'object' && request.staff === loggedInStaff) {
+                                allRequests.push({
+                                  type: 'Early Arrival',
+                                  date: date,
+                                  status: request.status || 'pending',
+                                  reason: request.reason,
+                                  time: request.time,
+                                  timestamp: request.timestamp
+                                });
+                              }
+                            });
+                          });
+                          
+                          // Sort by timestamp (newest first)
+                          allRequests.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                          
+                          if (allRequests.length === 0) {
+                            return <div className="text-gray-300">No requests submitted yet.</div>;
+                          }
+                          
+                          return allRequests.slice(0, 5).map((request, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-white bg-opacity-10 rounded">
+                              <div>
+                                <div className="font-medium">{request.type}</div>
+                                <div className="text-xs opacity-80">
+                                  {new Date(request.date).toLocaleDateString()}
+                                  {request.time && ` • ${request.time}`}
+                                </div>
+                                {request.reason && <div className="text-xs opacity-70">Reason: {request.reason}</div>}
+                              </div>
+                              <div className={`text-xs px-2 py-1 rounded font-semibold ${
+                                request.status === 'approved' ? 'bg-green-600 text-white' :
+                                request.status === 'denied' ? 'bg-red-600 text-white' :
+                                'bg-yellow-600 text-white'
+                              }`}>
+                                {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                              </div>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    </div>
                   <div className="text-sm opacity-90">
                     Total Hours: {calculateBaseHours(currentWeek)[loggedInStaff]} / 40 target
                   </div>
