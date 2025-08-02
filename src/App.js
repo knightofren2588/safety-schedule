@@ -35,6 +35,10 @@ const MasterScheduleSystem = () => {
     const saved = localStorage.getItem('safetySchedule_ptoRequests');
     return saved ? JSON.parse(saved) : {};
   });
+  const [earlyArrivalRequests, setEarlyArrivalRequests] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_earlyArrivalRequests');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('master');
   const [selectedStaffView, setSelectedStaffView] = useState('Kyle');
@@ -205,6 +209,13 @@ const MasterScheduleSystem = () => {
 
   const getAvailableStaff = (day, weekNum) => {
     return ['Kyle', 'Mia', 'Tyler', 'Mike'].filter(staff => !isStaffOff(staff, day, weekNum));
+  };
+
+  const getOperatingHours = (location, day) => {
+    if (day === 'Saturday') {
+      return saturdayHours[location];
+    }
+    return baseShiftHours[location];
   };
 
   const getShiftDuration = (day, location, weekNum) => {
@@ -926,6 +937,70 @@ const MasterScheduleSystem = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Early Arrival Requests */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Early Arrival Requests ({Object.values(earlyArrivalRequests).flat().length})
+                </h4>
+                <div className="space-y-3">
+                  {Object.entries(earlyArrivalRequests).map(([date, requests]) => (
+                    <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setEarlyArrivalRequests(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {requests.map((request, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {request.staff} - {request.location}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setEarlyArrivalRequests(prev => {
+                                    const updated = {
+                                      ...prev,
+                                      [date]: prev[date].filter((_, i) => i !== index)
+                                    };
+                                    if (updated[date].length === 0) {
+                                      delete updated[date];
+                                    }
+                                    localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                                    return updated;
+                                  });
+                                }}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              <div>Current: {request.currentStart} → Requested: {request.requestedStart}</div>
+                              <div>Day: {request.day}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1042,6 +1117,11 @@ const MasterScheduleSystem = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {getStaffSchedule(loggedInStaff, currentWeek).map((shift, index) => {
                     const date = getWeekDates(currentWeek)[days.indexOf(shift.day)];
+                    const operatingHours = getOperatingHours(shift.location, shift.day);
+                    const customTime = getCustomShiftTime(shift.day, shift.location, currentWeek);
+                    const actualStartTime = customTime?.start || shift.shiftHours.start;
+                    const actualEndTime = customTime?.end || shift.shiftHours.end;
+                    
                     return (
                       <div key={index} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
                         <div className="flex items-center justify-between mb-2">
@@ -1054,11 +1134,48 @@ const MasterScheduleSystem = () => {
                             <span className="font-medium">{shift.location}</span>
                           </div>
                           <div className="text-sm text-gray-600">
-                            {shift.shiftHours.start} - {shift.shiftHours.end}
+                            {actualStartTime} - {actualEndTime}
                           </div>
                           <div className="text-lg font-bold text-green-600">
                             {shift.duration} hours
                           </div>
+                          <div className="text-xs text-gray-500 border-t pt-2">
+                            <div className="flex items-center gap-1">
+                              <span>🏢 Operating Hours:</span>
+                              <span>{operatingHours.start} - {operatingHours.end}</span>
+                            </div>
+                          </div>
+                          {/* Early Arrival Request Button */}
+                          {actualStartTime !== operatingHours.start && (
+                            <button
+                              onClick={() => {
+                                const dateKey = date.toISOString().split('T')[0];
+                                const request = {
+                                  staff: loggedInStaff,
+                                  location: shift.location,
+                                  day: shift.day,
+                                  currentStart: actualStartTime,
+                                  requestedStart: operatingHours.start,
+                                  date: dateKey,
+                                  timestamp: new Date().toISOString()
+                                };
+                                
+                                setEarlyArrivalRequests(prev => {
+                                  const updated = {
+                                    ...prev,
+                                    [dateKey]: [...(prev[dateKey] || []), request]
+                                  };
+                                  localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                                  return updated;
+                                });
+                                
+                                alert('Early arrival request submitted!');
+                              }}
+                              className="w-full mt-2 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                            >
+                              📅 Offer to come in at {operatingHours.start}
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
