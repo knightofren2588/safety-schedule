@@ -95,11 +95,11 @@ const MasterScheduleSystem = () => {
       title: 'Week 1 - August 5-11',
       saturdayStaff: 'Kyle',
       assignments: {
-        Monday: { 'Short North': 'Tyler', 'KL': 'Mia', 'Safepoint': null },
-        Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
+        Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
+        Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
+        Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
       }
     },
@@ -109,7 +109,7 @@ const MasterScheduleSystem = () => {
       assignments: {
         Monday: { 'Short North': 'Tyler', 'KL': 'Kyle', 'Safepoint': null },
         Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
-        Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
+        Wednesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' },
         Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' }
@@ -121,7 +121,7 @@ const MasterScheduleSystem = () => {
       assignments: {
         Monday: { 'Short North': 'Mia', 'KL': 'Tyler', 'Safepoint': null },
         Tuesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
+        Wednesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Friday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Kyle' }
@@ -131,11 +131,11 @@ const MasterScheduleSystem = () => {
       title: 'Week 4 - August 26-September 1',
       saturdayStaff: 'Kyle',
       assignments: {
-        Monday: { 'Short North': 'Tyler', 'KL': 'Mia', 'Safepoint': null },
-        Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
+        Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
+        Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
+        Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
       }
     }
