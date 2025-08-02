@@ -207,8 +207,23 @@ const MasterScheduleSystem = () => {
 
   // Utility functions
   const isStaffOff = (staff, day, weekNum) => {
-    const dateKey = `${weekNum}-${day}`;
-    return callOffs[dateKey]?.includes(staff) || ptoRequests[dateKey]?.includes(staff);
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    // Check call-offs
+    const callOffList = callOffs[dateKey] || [];
+    const isCallOff = callOffList.some(request => 
+      typeof request === 'string' ? request === staff : request.staff === staff
+    );
+    
+    // Check PTO requests
+    const ptoList = ptoRequests[dateKey] || [];
+    const isPTO = ptoList.some(request => 
+      typeof request === 'string' ? request === staff : request.staff === staff
+    );
+    
+    return isCallOff || isPTO;
   };
 
   const getAvailableStaff = (day, weekNum) => {
@@ -537,110 +552,105 @@ const MasterScheduleSystem = () => {
 
   // Render main application
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-indigo-50 via-white to-cyan-50'} p-6 ${theme}`}>
-      <div className="max-w-7xl mx-auto">
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-indigo-50 via-white to-cyan-50'}`}>
+      <div className="max-w-7xl mx-auto p-4 lg:p-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-indigo-600 rounded-xl">
-              <Target className="w-8 h-8 text-white" />
+        <div className="text-center mb-6 lg:mb-8">
+          <div className="flex items-center justify-center gap-3 mb-3 lg:mb-4">
+            <div className="p-2 lg:p-3 bg-indigo-600 rounded-xl">
+              <Target className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
             </div>
-            <h1 className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            <h1 className={`text-2xl lg:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               {isAuthenticated ? '40-Hour Master Schedule' : `${Object.keys(isStaffAuthenticated).find(staff => isStaffAuthenticated[staff])}'s Schedule`}
             </h1>
           </div>
-          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className={`text-base lg:text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             {isAuthenticated ? 'Base schedule targeting 40 hours + voluntary pickup shifts' : 'Personal schedule view'}
           </p>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-2`}>
+          <p className={`text-xs lg:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1 lg:mt-2`}>
             {currentMonthYear.month} {currentMonthYear.year} • 4-Week Rotation • Start: Monday, August 5th, 2024
           </p>
           
           <button
             onClick={handleLogout}
-            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
+            className="mt-3 lg:mt-4 px-3 lg:px-4 py-1.5 lg:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-xs lg:text-sm"
           >
             🔓 Logout
           </button>
         </div>
 
         {/* Control Panel */}
-        <div className="flex flex-wrap justify-center gap-4 mt-6">
+        <div className="flex flex-wrap justify-center gap-2 lg:gap-4 mt-4 lg:mt-6">
           {/* Master-only controls */}
           {isAuthenticated && (
             <>
               <button
                 onClick={() => setEditMode(!editMode)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   editMode ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <Edit3 className="w-4 h-4" />
-                {editMode ? 'Exit Edit Mode' : 'Edit Base Schedule'}
+                <Edit3 className="w-3 h-3 lg:w-4 lg:h-4" />
+                {editMode ? 'Exit Edit' : 'Edit Schedule'}
               </button>
 
               <button
                 onClick={() => setViewMode(viewMode === 'master' ? 'individual' : 'master')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   viewMode === 'individual' ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <Users className="w-4 h-4" />
+                <Users className="w-3 h-3 lg:w-4 lg:h-4" />
                 {viewMode === 'master' ? 'Individual View' : 'Master View'}
               </button>
 
               <button
                 onClick={() => setShowAnalytics(!showAnalytics)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   showAnalytics ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <BarChart3 className="w-4 h-4" />
-                {showAnalytics ? 'Hide Analytics' : 'Show Analytics'}
+                <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4" />
+                Analytics
               </button>
 
               <button
                 onClick={() => setShowPickupShifts(!showPickupShifts)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   showPickupShifts ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <Upload className="w-4 h-4" />
-                {showPickupShifts ? 'Hide Pickup Shifts' : 'Show Pickup Shifts'}
+                <Upload className="w-3 h-3 lg:w-4 lg:h-4" />
+                Pickup Shifts
+              </button>
+
+              <button
+                onClick={() => setShowCallOffManager(!showCallOffManager)}
+                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
+                  showCallOffManager ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <CalendarX className="w-3 h-3 lg:w-4 lg:h-4" />
+                Call-Off Manager
+              </button>
+
+              <button
+                onClick={() => setShowRoster(!showRoster)}
+                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
+                  showRoster ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Users className="w-3 h-3 lg:w-4 lg:h-4" />
+                Roster
               </button>
             </>
           )}
 
           {/* Staff-only controls */}
           {loggedInStaff && !isAuthenticated && (
-            <div className="text-sm text-gray-500">
+            <div className="text-xs lg:text-sm text-gray-500">
               Viewing {loggedInStaff}'s personal schedule
             </div>
-          )}
-
-          {/* Master-only management buttons */}
-          {isAuthenticated && (
-            <>
-              <button
-                onClick={() => setShowCallOffManager(!showCallOffManager)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  showCallOffManager ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                Call-Off Manager
-              </button>
-
-              <button
-                onClick={() => setShowRoster(!showRoster)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  showRoster ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                Roster Management
-              </button>
-            </>
           )}
         </div>
 
