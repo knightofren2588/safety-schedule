@@ -552,14 +552,14 @@ const MasterScheduleSystem = () => {
 
   // Render main application
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-indigo-50 via-white to-cyan-50'}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50'}`}>
       <div className="max-w-7xl mx-auto p-4 lg:p-6">
         {/* Header */}
         <div className="text-center mb-6 lg:mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3 lg:mb-4">
-            <div className="p-2 lg:p-3 bg-indigo-600 rounded-xl">
-              <Target className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
-            </div>
+                      <div className="flex items-center justify-center gap-3 mb-3 lg:mb-4">
+              <div className="p-2 lg:p-3 bg-red-600 rounded-xl">
+                <Target className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
+              </div>
             <h1 className={`text-2xl lg:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               {isAuthenticated ? '40-Hour Master Schedule' : `${Object.keys(isStaffAuthenticated).find(staff => isStaffAuthenticated[staff])}'s Schedule`}
             </h1>
@@ -587,7 +587,7 @@ const MasterScheduleSystem = () => {
               <button
                 onClick={() => setEditMode(!editMode)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
-                  editMode ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  editMode ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <Edit3 className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -597,7 +597,7 @@ const MasterScheduleSystem = () => {
               <button
                 onClick={() => setViewMode(viewMode === 'master' ? 'individual' : 'master')}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
-                  viewMode === 'individual' ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  viewMode === 'individual' ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <Users className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -607,7 +607,7 @@ const MasterScheduleSystem = () => {
               <button
                 onClick={() => setShowAnalytics(!showAnalytics)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
-                  showAnalytics ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  showAnalytics ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -617,7 +617,7 @@ const MasterScheduleSystem = () => {
               <button
                 onClick={() => setShowPickupShifts(!showPickupShifts)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
-                  showPickupShifts ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  showPickupShifts ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <Upload className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -627,7 +627,7 @@ const MasterScheduleSystem = () => {
               <button
                 onClick={() => setShowCallOffManager(!showCallOffManager)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
-                  showCallOffManager ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  showCallOffManager ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <CalendarX className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -637,7 +637,7 @@ const MasterScheduleSystem = () => {
               <button
                 onClick={() => setShowRoster(!showRoster)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
-                  showRoster ? 'bg-indigo-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  showRoster ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <Users className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -1102,7 +1102,7 @@ const MasterScheduleSystem = () => {
                 onClick={() => setCurrentWeek(week)}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
                   currentWeek === week
-                    ? 'bg-indigo-600 text-white shadow-lg transform scale-105'
+                    ? 'bg-red-600 text-white shadow-lg transform scale-105'
                     : `${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`
                 }`}
               >
@@ -1179,7 +1179,7 @@ const MasterScheduleSystem = () => {
 
         {/* Schedule Grid */}
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden`}>
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6">
+          <div className="bg-gradient-to-r from-red-600 to-orange-600 p-6">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
               <Clock className="w-6 h-6" />
               {viewMode === 'master' ? `${currentSchedule.title} - Base Schedule` : `${selectedStaffView}'s Schedule - Week ${currentWeek}`}
@@ -1302,7 +1302,7 @@ const MasterScheduleSystem = () => {
                       <div>• Check with management for available pickup opportunities</div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <input
                       type="date"
                       id="staffRequestDate"
@@ -1310,6 +1310,14 @@ const MasterScheduleSystem = () => {
                     />
                     <select
                       id="staffRequestType"
+                      onChange={(e) => {
+                        const timeField = document.getElementById('staffRequestTime');
+                        if (e.target.value === 'pickup') {
+                          timeField.style.display = 'block';
+                        } else {
+                          timeField.style.display = 'none';
+                        }
+                      }}
                       className={`p-2 rounded border ${darkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-black'}`}
                     >
                       <option value="">Request Type</option>
@@ -1317,6 +1325,13 @@ const MasterScheduleSystem = () => {
                       <option value="pto">PTO Request</option>
                       <option value="pickup">Pickup Hours Request</option>
                     </select>
+                    <input
+                      type="text"
+                      id="staffRequestTime"
+                      placeholder="Time (e.g., 7:30a-3:30p)"
+                      className={`p-2 rounded border ${darkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-black'}`}
+                      style={{display: 'none'}}
+                    />
                     <input
                       type="text"
                       id="staffRequestReason"
@@ -1328,10 +1343,16 @@ const MasterScheduleSystem = () => {
                     onClick={() => {
                       const date = document.getElementById('staffRequestDate').value;
                       const requestType = document.getElementById('staffRequestType').value;
+                      const time = document.getElementById('staffRequestTime').value;
                       const reason = document.getElementById('staffRequestReason').value;
                       
                       if (!date || !requestType) {
                         alert('Please select a date and request type');
+                        return;
+                      }
+                      
+                      if (requestType === 'pickup' && !time) {
+                        alert('Please enter the time for pickup request');
                         return;
                       }
                       
@@ -1342,6 +1363,11 @@ const MasterScheduleSystem = () => {
                         date: date,
                         timestamp: new Date().toISOString()
                       };
+                      
+                      if (requestType === 'pickup') {
+                        request.time = time;
+                        request.hours = calculateHoursFromTimes(time.split('-')[0], time.split('-')[1]);
+                      }
                       
                       if (requestType === 'calloff') {
                         setCallOffs(prev => {
@@ -1361,16 +1387,27 @@ const MasterScheduleSystem = () => {
                           localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
                           return updated;
                         });
+                      } else if (requestType === 'pickup') {
+                        setPickupRequests(prev => {
+                          const updated = {
+                            ...prev,
+                            [date]: [...(prev[date] || []), request]
+                          };
+                          localStorage.setItem('safetySchedule_pickupRequests', JSON.stringify(updated));
+                          return updated;
+                        });
                       }
                       
                       // Clear inputs
                       document.getElementById('staffRequestDate').value = '';
                       document.getElementById('staffRequestType').value = '';
+                      document.getElementById('staffRequestTime').value = '';
                       document.getElementById('staffRequestReason').value = '';
+                      document.getElementById('staffRequestTime').style.display = 'none';
                       
                       alert('Request submitted successfully!');
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                   >
                     Submit Request
                   </button>
