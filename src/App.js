@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, Clock, Settings, Edit3, Users, BarChart3, Upload, CalendarX } from 'lucide-react';
+import { Target, Clock, Settings, Edit3, Users, BarChart3, Upload, CalendarX, MapPin } from 'lucide-react';
 
 // ===== PASSWORD CONFIGURATION =====
 // Change these passwords here for easy access
@@ -65,7 +65,17 @@ const MasterScheduleSystem = () => {
   const [showLogin, setShowLogin] = useState(true);
   const [loggedInStaff, setLoggedInStaff] = useState(null);
   const [showRoster, setShowRoster] = useState(false);
+  const [showSites, setShowSites] = useState(false);
   const [newOfficer, setNewOfficer] = useState({ name: '', password: '', color: 'bg-blue-500' });
+  const [newSite, setNewSite] = useState({ 
+    name: '', 
+    address: '', 
+    startTime: '', 
+    endTime: '', 
+    saturdayStart: '', 
+    saturdayEnd: '', 
+    closedDays: [] 
+  });
   const [pendingChanges, setPendingChanges] = useState({});
 
   // Staff information
@@ -76,7 +86,38 @@ const MasterScheduleSystem = () => {
     Mike: { color: 'bg-orange-500', textColor: 'bg-orange-500 text-white' }
   });
 
-  // Location icons
+  // Sites information
+  const [sites, setSites] = useState({
+    'Short North': {
+      address: '123 Short North Ave, Columbus, OH 43215',
+      startTime: '11:00a',
+      endTime: '7:30p',
+      saturdayStart: '9:00a',
+      saturdayEnd: '3:30p',
+      closedDays: ['Sunday'],
+      icon: '🌆'
+    },
+    'KL': {
+      address: '456 KL Business Center, Columbus, OH 43210',
+      startTime: '11:00a',
+      endTime: '7:30p',
+      saturdayStart: '9:00a',
+      saturdayEnd: '3:30p',
+      closedDays: ['Sunday'],
+      icon: '🏢'
+    },
+    'Safepoint': {
+      address: '789 Safepoint Security, Columbus, OH 43201',
+      startTime: '11:00a',
+      endTime: '7:00p',
+      saturdayStart: '9:00a',
+      saturdayEnd: '2:00p',
+      closedDays: ['Sunday', 'Monday'],
+      icon: '🛡️'
+    }
+  });
+
+  // Location icons (for backward compatibility)
   const locationIcons = {
     'Short North': '🌆',
     'KL': '🏢',
@@ -676,6 +717,16 @@ const MasterScheduleSystem = () => {
                 <Users className="w-3 h-3 lg:w-4 lg:h-4" />
                 Roster
               </button>
+
+              <button
+                onClick={() => setShowSites(!showSites)}
+                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
+                  showSites ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <MapPin className="w-3 h-3 lg:w-4 lg:h-4" />
+                Sites
+              </button>
             </>
           )}
 
@@ -754,6 +805,162 @@ const MasterScheduleSystem = () => {
                           Remove
                         </button>
                       )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sites Management Panel */}
+        {showSites && isAuthenticated && (
+          <div className={`mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <MapPin className="w-5 h-5" />
+              Sites Management
+            </h3>
+            
+            {/* Add New Site */}
+            <div className="mb-6">
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Add New Site</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <input
+                  type="text"
+                  placeholder="Site Name"
+                  value={newSite.name}
+                  onChange={(e) => setNewSite(prev => ({ ...prev, name: e.target.value }))}
+                  className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                />
+                <input
+                  type="text"
+                  placeholder="Address"
+                  value={newSite.address}
+                  onChange={(e) => setNewSite(prev => ({ ...prev, address: e.target.value }))}
+                  className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                />
+                <input
+                  type="text"
+                  placeholder="Start Time (e.g., 11:00a)"
+                  value={newSite.startTime}
+                  onChange={(e) => setNewSite(prev => ({ ...prev, startTime: e.target.value }))}
+                  className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                />
+                <input
+                  type="text"
+                  placeholder="End Time (e.g., 7:30p)"
+                  value={newSite.endTime}
+                  onChange={(e) => setNewSite(prev => ({ ...prev, endTime: e.target.value }))}
+                  className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                />
+                <input
+                  type="text"
+                  placeholder="Saturday Start (e.g., 9:00a)"
+                  value={newSite.saturdayStart}
+                  onChange={(e) => setNewSite(prev => ({ ...prev, saturdayStart: e.target.value }))}
+                  className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                />
+                <input
+                  type="text"
+                  placeholder="Saturday End (e.g., 3:30p)"
+                  value={newSite.saturdayEnd}
+                  onChange={(e) => setNewSite(prev => ({ ...prev, saturdayEnd: e.target.value }))}
+                  className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                />
+                <div className="md:col-span-2 lg:col-span-3">
+                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Closed Days:
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                      <label key={day} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={newSite.closedDays.includes(day)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewSite(prev => ({ ...prev, closedDays: [...prev.closedDays, day] }));
+                            } else {
+                              setNewSite(prev => ({ ...prev, closedDays: prev.closedDays.filter(d => d !== day) }));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{day}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="md:col-span-2 lg:col-span-3">
+                  <button
+                    onClick={() => {
+                      if (newSite.name && newSite.address && newSite.startTime && newSite.endTime) {
+                        const newSiteData = {
+                          ...newSite,
+                          icon: '🏢' // Default icon
+                        };
+                        setSites(prev => ({ ...prev, [newSite.name]: newSiteData }));
+                        setNewSite({ 
+                          name: '', 
+                          address: '', 
+                          startTime: '', 
+                          endTime: '', 
+                          saturdayStart: '', 
+                          saturdayEnd: '', 
+                          closedDays: [] 
+                        });
+                        alert('Site added successfully!');
+                      } else {
+                        alert('Please fill in all required fields (Name, Address, Start Time, End Time)');
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                  >
+                    Add Site
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Current Sites */}
+            <div>
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Current Sites</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(sites).map(([name, site]) => (
+                  <div key={name} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{site.icon}</span>
+                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{name}</span>
+                      </div>
+                      {name !== 'Short North' && name !== 'KL' && name !== 'Safepoint' && (
+                        <button
+                          onClick={() => {
+                            setSites(prev => {
+                              const updated = { ...prev };
+                              delete updated[name];
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        📍 {site.address}
+                      </div>
+                      <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        🕐 Mon-Fri: {site.startTime} - {site.endTime}
+                      </div>
+                      <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        🕐 Sat: {site.saturdayStart} - {site.saturdayEnd}
+                      </div>
+                      <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        ❌ Closed: {site.closedDays.join(', ')}
+                      </div>
                     </div>
                   </div>
                 ))}
