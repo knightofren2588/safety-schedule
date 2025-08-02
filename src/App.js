@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Target, Clock, Settings, Edit3, Users, BarChart3, Download, Upload, Eye, EyeOff, CalendarX } from 'lucide-react';
+import React, { useState } from 'react';
+import { Target, Clock, Settings, Edit3, Users, BarChart3, Upload, CalendarX } from 'lucide-react';
 
 // ===== PASSWORD CONFIGURATION =====
 // Change these passwords here for easy access
@@ -21,7 +21,8 @@ const MasterScheduleSystem = () => {
   const [editMode, setEditMode] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showPickupShifts, setShowPickupShifts] = useState(false);
-  const [pickupSignups, setPickupSignups] = useState(() => {
+  // eslint-disable-next-line no-unused-vars
+  const [pickupSignups] = useState(() => {
     const saved = localStorage.getItem('safetySchedule_pickupSignups');
     return saved ? JSON.parse(saved) : {};
   });
@@ -30,7 +31,7 @@ const MasterScheduleSystem = () => {
     const saved = localStorage.getItem('safetySchedule_callOffs');
     return saved ? JSON.parse(saved) : {};
   });
-  const [ptoRequests, setPtoRequests] = useState(() => {
+  const [ptoRequests] = useState(() => {
     const saved = localStorage.getItem('safetySchedule_ptoRequests');
     return saved ? JSON.parse(saved) : {};
   });
@@ -236,19 +237,7 @@ const MasterScheduleSystem = () => {
     return customTimes[shiftKey];
   };
 
-  const updateShiftTime = (day, location, weekNum, newTime) => {
-    const shiftKey = `${weekNum}-${day}-${location}`;
-    setCustomTimes(prev => ({
-      ...prev,
-      [shiftKey]: newTime
-    }));
-    
-    // Auto-calculate hours from times
-    if (newTime.start && newTime.end) {
-      const calculatedHours = calculateHoursFromTimes(newTime.start, newTime.end);
-      updateShiftDuration(day, location, weekNum, calculatedHours);
-    }
-  };
+
 
   const calculateHoursFromTimes = (startTime, endTime) => {
     console.log('calculateHoursFromTimes called with:', startTime, endTime);
