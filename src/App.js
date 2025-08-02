@@ -95,11 +95,11 @@ const MasterScheduleSystem = () => {
       title: 'Week 1 - August 5-11',
       saturdayStaff: 'Kyle',
       assignments: {
-        Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
-        Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+        Monday: { 'Short North': 'Tyler', 'KL': 'Mia', 'Safepoint': null },
+        Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
         Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+        Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
       }
     },
@@ -109,8 +109,8 @@ const MasterScheduleSystem = () => {
       assignments: {
         Monday: { 'Short North': 'Tyler', 'KL': 'Kyle', 'Safepoint': null },
         Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
-        Wednesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Thursday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+        Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
+        Thursday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' },
         Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' }
       }
@@ -121,7 +121,7 @@ const MasterScheduleSystem = () => {
       assignments: {
         Monday: { 'Short North': 'Mia', 'KL': 'Tyler', 'Safepoint': null },
         Tuesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Wednesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+        Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Friday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Kyle' }
@@ -131,11 +131,11 @@ const MasterScheduleSystem = () => {
       title: 'Week 4 - August 26-September 1',
       saturdayStaff: 'Kyle',
       assignments: {
-        Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
-        Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+        Monday: { 'Short North': 'Tyler', 'KL': 'Mia', 'Safepoint': null },
+        Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
         Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+        Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
       }
     }
@@ -1112,6 +1112,17 @@ const MasterScheduleSystem = () => {
                   <div className="text-sm opacity-90">
                     Total Hours: {calculateBaseHours(currentWeek)[loggedInStaff]} / 40 target
                   </div>
+                  {calculateBaseHours(currentWeek)[loggedInStaff] < 40 && (
+                    <div className="mt-3 p-3 bg-white bg-opacity-20 rounded-lg">
+                      <div className="text-sm font-semibold mb-2">💡 Pickup Opportunities:</div>
+                      <div className="text-xs space-y-1">
+                        <div>• You're under 40 hours this week</div>
+                        <div>• Check with management for available pickup shifts</div>
+                        <div>• Consider offering to come in early on your scheduled shifts</div>
+                        <div>• Look for "PICKUP" shifts in the master schedule</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1194,6 +1205,14 @@ const MasterScheduleSystem = () => {
                   <h4 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                     Request Time Off
                   </h4>
+                  <div className={`mb-4 p-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-blue-50'} border-l-4 border-blue-500`}>
+                    <div className="text-sm font-semibold mb-1">💡 Pro Tips:</div>
+                    <div className="text-xs space-y-1">
+                      <div>• Under 40 hours? Offer to come in early on your shifts</div>
+                      <div>• Early arrival requests help you reach your target hours</div>
+                      <div>• Check with management for additional pickup opportunities</div>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <input
                       type="date"
