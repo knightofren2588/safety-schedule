@@ -19,7 +19,7 @@ const MasterScheduleSystem = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(() => {
     const today = new Date();
-    const startDate = new Date(2024, 7, 5); // August 5th, 2024
+    const startDate = new Date(2024, 7, 4); // August 4th, 2024
     const diffTime = today.getTime() - startDate.getTime();
     const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
     return Math.max(1, Math.min(4, diffWeeks + 1)); // Keep within 1-4 range
@@ -194,7 +194,7 @@ const MasterScheduleSystem = () => {
 
   // Date functions
   const getWeekDates = (weekNum) => {
-    const startDate = new Date(2024, 7, 5); // August 5th, 2024 (Monday)
+    const startDate = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
     const targetWeek = weekNum - 1;
     
     const monday = new Date(startDate);
@@ -221,7 +221,7 @@ const MasterScheduleSystem = () => {
   // eslint-disable-next-line no-unused-vars
   const getCurrentWeekNumber = () => {
     const today = new Date();
-    const startDate = new Date(2024, 7, 5); // August 5th, 2024
+    const startDate = new Date(2024, 7, 4); // August 4th, 2024
     const diffTime = today.getTime() - startDate.getTime();
     const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
     return Math.max(1, Math.min(4, diffWeeks + 1)); // Keep within 1-4 range
@@ -625,7 +625,7 @@ const MasterScheduleSystem = () => {
             {isAuthenticated ? 'Base schedule targeting 40 hours + voluntary pickup shifts' : 'Personal schedule view'}
           </p>
           <p className={`text-xs lg:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1 lg:mt-2`}>
-            {currentMonthYear.month} {currentMonthYear.year} • 4-Week Rotation • Start: Monday, August 5th, 2024
+            {currentMonthYear.month} {currentMonthYear.year} • 4-Week Rotation • Start: Monday, August 4th, 2024
           </p>
           {!isAuthenticated && (
             <div className={`mt-3 p-3 rounded-lg ${darkMode ? 'bg-yellow-900 bg-opacity-30 border border-yellow-600' : 'bg-yellow-50 border border-yellow-200'}`}>
@@ -1254,8 +1254,12 @@ const MasterScheduleSystem = () => {
                               </button>
                             </div>
                             <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              <div>Current: {request.currentStart} → Requested: {request.requestedStart}</div>
-                              <div>Day: {request.day}</div>
+                              {request.time ? (
+                                <div>Requested Time: {request.time} ({request.hours}h)</div>
+                              ) : (
+                                <div>Current: {request.currentStart} → Requested: {request.requestedStart}</div>
+                              )}
+                              {request.reason && <div>Reason: {request.reason}</div>}
                             </div>
                           </div>
                         ))}
@@ -1552,7 +1556,7 @@ const MasterScheduleSystem = () => {
                       id="staffRequestType"
                       onChange={(e) => {
                         const timeField = document.getElementById('staffRequestTime');
-                        if (e.target.value === 'pickup') {
+                        if (e.target.value === 'pickup' || e.target.value === 'early') {
                           timeField.style.display = 'block';
                         } else {
                           timeField.style.display = 'none';
@@ -1564,11 +1568,12 @@ const MasterScheduleSystem = () => {
                       <option value="calloff">Call-Off</option>
                       <option value="pto">PTO Request</option>
                       <option value="pickup">Pickup Hours Request</option>
+                      <option value="early">Early Arrival Request</option>
                     </select>
                     <input
                       type="text"
                       id="staffRequestTime"
-                      placeholder="Time (e.g., 7:30a-3:30p)"
+                      placeholder="Time (e.g., 7:30a-3:30p for pickup, 7:30a for early arrival)"
                       className={`p-2 rounded border ${darkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-black'}`}
                       style={{display: 'none'}}
                     />
@@ -1591,8 +1596,8 @@ const MasterScheduleSystem = () => {
                         return;
                       }
                       
-                      if (requestType === 'pickup' && !time) {
-                        alert('Please enter the time for pickup request');
+                      if ((requestType === 'pickup' || requestType === 'early') && !time) {
+                        alert('Please enter the time for this request');
                         return;
                       }
                       
@@ -1604,7 +1609,7 @@ const MasterScheduleSystem = () => {
                         timestamp: new Date().toISOString()
                       };
                       
-                      if (requestType === 'pickup') {
+                      if (requestType === 'pickup' || requestType === 'early') {
                         request.time = time;
                         request.hours = calculateHoursFromTimes(time.split('-')[0], time.split('-')[1]);
                       }
@@ -1634,6 +1639,15 @@ const MasterScheduleSystem = () => {
                             [date]: [...(prev[date] || []), request]
                           };
                           localStorage.setItem('safetySchedule_pickupRequests', JSON.stringify(updated));
+                          return updated;
+                        });
+                      } else if (requestType === 'early') {
+                        setEarlyArrivalRequests(prev => {
+                          const updated = {
+                            ...prev,
+                            [date]: [...(prev[date] || []), request]
+                          };
+                          localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
                           return updated;
                         });
                       }
