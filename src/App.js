@@ -1381,49 +1381,53 @@ const MasterScheduleSystem = () => {
           </div>
         </div>
 
-        {/* Schedule Information */}
-        <div className={`mt-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
-          <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            <Settings className="w-5 h-5" />
-            Schedule System Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Operating Hours (Strict Limits)</h4>
-              <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li>🌆 <strong>Short North:</strong> Mon-Fri 7:30a-7:30p, Sat 9a-3:30p</li>
-                <li>🏢 <strong>KL:</strong> Mon-Fri 7:30a-7:30p, Sat 9a-3:30p</li>
-                <li>🛡️ <strong>Safepoint:</strong> Tue-Fri 11a-7:00p, Sat 9a-2:00p (closed Mondays)</li>
-                <li>⚠️ <strong>No shifts outside these hours</strong></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>System Rules</h4>
-              <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li>🎯 <strong>Target:</strong> 40 hours per person per week</li>
-                <li>🚫 <strong>Mike:</strong> Mondays off, works Tuesday-Saturday at Short North (40.5 hours)</li>
-                <li>🔄 <strong>KL Saturday rotation:</strong> Kyle → Tyler → Mia → Kyle (4-week cycle)</li>
-                <li>🛡️ <strong>Safepoint rotation:</strong> Staff rotate through Safepoint assignments</li>
-                <li>📅 <strong>Start date:</strong> Monday, August 5th, 2024</li>
-                <li>⚡ <strong>Pickup shifts:</strong> Within business hours only</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>JotForm Integration</h4>
-              <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li>📊 <strong>Export:</strong> JSON data for form setup</li>
-                <li>📝 <strong>Pickup form:</strong> Staff can sign up for open shifts</li>
-                <li>🔄 <strong>Updates:</strong> Import signups back to system</li>
-                <li>📱 <strong>Mobile friendly:</strong> Easy access for staff</li>
-              </ul>
+        {/* Schedule Information - Master Only */}
+        {isAuthenticated && (
+          <div className={`mt-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <Settings className="w-5 h-5" />
+              Schedule System Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Operating Hours (Strict Limits)</h4>
+                <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <li>🌆 <strong>Short North:</strong> Mon-Fri 7:30a-7:30p, Sat 9a-3:30p</li>
+                  <li>🏢 <strong>KL:</strong> Mon-Fri 7:30a-7:30p, Sat 9a-3:30p</li>
+                  <li>🛡️ <strong>Safepoint:</strong> Tue-Fri 11a-7:00p, Sat 9a-2:00p (closed Mondays)</li>
+                  <li>⚠️ <strong>No shifts outside these hours</strong></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>System Rules</h4>
+                <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <li>🎯 <strong>Target:</strong> 40 hours per person per week</li>
+                  <li>🚫 <strong>Mike:</strong> Mondays off, works Tuesday-Saturday at Short North (40.5 hours)</li>
+                  <li>🔄 <strong>KL Saturday rotation:</strong> Kyle → Tyler → Mia → Kyle (4-week cycle)</li>
+                  <li>🛡️ <strong>Safepoint rotation:</strong> Staff rotate through Safepoint assignments</li>
+                  <li>📅 <strong>Start date:</strong> Monday, August 5th, 2024</li>
+                  <li>⚡ <strong>Pickup shifts:</strong> Within business hours only</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>JotForm Integration</h4>
+                <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <li>📊 <strong>Export:</strong> JSON data for form setup</li>
+                  <li>📝 <strong>Pickup form:</strong> Staff can sign up for open shifts</li>
+                  <li>🔄 <strong>Updates:</strong> Import signups back to system</li>
+                  <li>📱 <strong>Mobile friendly:</strong> Easy access for staff</li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Footer */}
-        <div className={`text-center mt-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          <p>🎯 40-Hour Master Schedule System • Base assignments + voluntary pickups • Ready for JotForm integration</p>
-        </div>
+        {/* Footer - Master Only */}
+        {isAuthenticated && (
+          <div className={`text-center mt-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p>🎯 40-Hour Master Schedule System • Base assignments + voluntary pickups • Ready for JotForm integration</p>
+          </div>
+        )}
       </div>
     </div>
   );
