@@ -39,6 +39,10 @@ const MasterScheduleSystem = () => {
     const saved = localStorage.getItem('safetySchedule_earlyArrivalRequests');
     return saved ? JSON.parse(saved) : {};
   });
+  const [pickupRequests, setPickupRequests] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_pickupRequests');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('master');
   const [selectedStaffView, setSelectedStaffView] = useState('Kyle');
@@ -783,16 +787,25 @@ const MasterScheduleSystem = () => {
                         localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
                         return updated;
                       });
-                    } else if (requestType === 'pto') {
-                      setPtoRequests(prev => {
-                        const updated = {
-                          ...prev,
-                          [dateKey]: [...(prev[dateKey] || []), request]
-                        };
-                        localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
-                        return updated;
-                      });
-                    }
+                                          } else if (requestType === 'pto') {
+                        setPtoRequests(prev => {
+                          const updated = {
+                            ...prev,
+                            [dateKey]: [...(prev[dateKey] || []), request]
+                          };
+                          localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                          return updated;
+                        });
+                      } else if (requestType === 'pickup') {
+                        setPickupRequests(prev => {
+                          const updated = {
+                            ...prev,
+                            [dateKey]: [...(prev[dateKey] || []), request]
+                          };
+                          localStorage.setItem('safetySchedule_pickupRequests', JSON.stringify(updated));
+                          return updated;
+                        });
+                      }
                     
                     // Clear inputs
                     document.getElementById('requestType').value = '';
@@ -1001,6 +1014,71 @@ const MasterScheduleSystem = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Pickup Requests */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Pickup Requests ({Object.values(pickupRequests).flat().length})
+                </h4>
+                <div className="space-y-3">
+                  {Object.entries(pickupRequests).map(([date, requests]) => (
+                    <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setPickupRequests(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_pickupRequests', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {requests.map((request, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {typeof request === 'string' ? request : request.staff}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setPickupRequests(prev => {
+                                    const updated = {
+                                      ...prev,
+                                      [date]: prev[date].filter((_, i) => i !== index)
+                                    };
+                                    if (updated[date].length === 0) {
+                                      delete updated[date];
+                                    }
+                                    localStorage.setItem('safetySchedule_pickupRequests', JSON.stringify(updated));
+                                    return updated;
+                                  });
+                                }}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            {typeof request === 'object' && request.reason && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Reason: {request.reason}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1117,9 +1195,9 @@ const MasterScheduleSystem = () => {
                       <div className="text-sm font-semibold mb-2">💡 Pickup Opportunities:</div>
                       <div className="text-xs space-y-1">
                         <div>• You're under 40 hours this week</div>
-                        <div>• Check with management for available pickup shifts</div>
+                        <div>• Submit pickup requests for additional shifts</div>
                         <div>• Consider offering to come in early on your scheduled shifts</div>
-                        <div>• Look for "PICKUP" shifts in the master schedule</div>
+                        <div>• Check with management for available pickup opportunities</div>
                       </div>
                     </div>
                   )}
@@ -1210,7 +1288,8 @@ const MasterScheduleSystem = () => {
                     <div className="text-xs space-y-1">
                       <div>• Under 40 hours? Offer to come in early on your shifts</div>
                       <div>• Early arrival requests help you reach your target hours</div>
-                      <div>• Check with management for additional pickup opportunities</div>
+                      <div>• Submit pickup requests for additional shifts</div>
+                      <div>• Check with management for available pickup opportunities</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -1226,6 +1305,7 @@ const MasterScheduleSystem = () => {
                       <option value="">Request Type</option>
                       <option value="calloff">Call-Off</option>
                       <option value="pto">PTO Request</option>
+                      <option value="pickup">Pickup Hours Request</option>
                     </select>
                     <input
                       type="text"
