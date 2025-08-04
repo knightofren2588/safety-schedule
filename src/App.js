@@ -625,12 +625,12 @@ const MasterScheduleSystem = () => {
           <p className={`text-base lg:text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             {isAuthenticated ? 'Base schedule targeting 40 hours + voluntary pickup shifts' : 'Personal schedule view'}
           </p>
-          <p className={`text-xs lg:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1 lg:mt-2`}>
+          <p className={`text-xs lg:text-sm ${darkMode ? 'text-gray-200' : 'text-gray-500'} mt-1 lg:mt-2`}>
             {currentMonthYear.month} {currentMonthYear.year} • 4-Week Rotation • Start: Monday, August 4th, 2024
           </p>
           {!isAuthenticated && (
             <div className={`mt-3 p-3 rounded-lg ${darkMode ? 'bg-yellow-900 bg-opacity-30 border border-yellow-600' : 'bg-yellow-50 border border-yellow-200'}`}>
-              <p className={`text-xs ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
+              <p className={`text-xs ${darkMode ? 'text-yellow-100' : 'text-yellow-800'}`}>
                 ⚠️ <strong>Important:</strong> Schedules may change periodically. Please check this app daily for updates, 
                 especially for call-offs, PTO requests, and pickup opportunities. Your schedule is subject to change 
                 based on operational needs and staff availability.
@@ -639,7 +639,7 @@ const MasterScheduleSystem = () => {
           )}
           {isAuthenticated && (
             <div className={`mt-3 p-3 rounded-lg ${darkMode ? 'bg-blue-900 bg-opacity-30 border border-blue-600' : 'bg-blue-50 border border-blue-200'}`}>
-              <p className={`text-xs ${darkMode ? 'text-blue-200' : 'text-blue-800'}`}>
+              <p className={`text-xs ${darkMode ? 'text-blue-100' : 'text-blue-800'}`}>
                 📅 <strong>Current Week:</strong> Week {currentWeek} of 4 • {currentMonthYear.month} {currentMonthYear.year} • 
                 Schedule automatically progresses through months. The 4-week rotation repeats continuously.
               </p>
@@ -743,7 +743,7 @@ const MasterScheduleSystem = () => {
 
           {/* Staff-only controls */}
           {loggedInStaff && !isAuthenticated && (
-            <div className="text-xs lg:text-sm text-gray-500">
+            <div className={`text-xs lg:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
               Viewing {loggedInStaff}'s personal schedule
             </div>
           )}
@@ -1018,11 +1018,11 @@ const MasterScheduleSystem = () => {
               <div className="min-w-full">
                 {/* Header Row */}
                 <div className="grid grid-cols-9 gap-2 mb-2">
-                  <div className={`p-2 font-semibold text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <div className={`p-2 font-semibold text-center ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                     Employee
                   </div>
                   {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
-                    <div key={day} className={`p-2 font-semibold text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <div key={day} className={`p-2 font-semibold text-center ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                       {day}
                     </div>
                   ))}
@@ -1030,11 +1030,11 @@ const MasterScheduleSystem = () => {
 
                 {/* Date Row */}
                 <div className="grid grid-cols-9 gap-2 mb-4">
-                  <div className={`p-2 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <div className={`p-2 text-center ${darkMode ? 'text-gray-200' : 'text-gray-600'}`}>
                     Week Total
                   </div>
                   {getWeekDates(currentWeek).map((date, index) => (
-                    <div key={index} className={`p-2 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <div key={index} className={`p-2 text-center ${darkMode ? 'text-gray-200' : 'text-gray-600'}`}>
                       {formatDate(date)}
                     </div>
                   ))}
@@ -1047,7 +1047,7 @@ const MasterScheduleSystem = () => {
                     <div key={staff} className="grid grid-cols-9 gap-2 mb-4">
                       <div className={`p-3 font-semibold ${staffInfo[staff].textColor} rounded-lg flex items-center justify-between`}>
                         <span>{staff}</span>
-                        <span className="text-xs opacity-80">
+                        <span className="text-xs opacity-90">
                           {weeklyHours >= 40 ? '🟢' : weeklyHours >= 30 ? '🟡' : '🔴'} {weeklyHours}h
                         </span>
                       </div>
@@ -1082,14 +1082,14 @@ const MasterScheduleSystem = () => {
                             ) : location ? (
                               <div className="text-center">
                                 <div className="text-xs font-semibold">{location}</div>
-                                <div className="text-xs opacity-80">
-                                  {customTime ? `${customTime.start}-${customTime.end}` : 
-                                   operatingHours ? `${operatingHours.start}-${operatingHours.end}` : ''}
-                                </div>
-                                <div className="text-xs opacity-80">{shiftDuration}h</div>
+                                                              <div className="text-xs opacity-90">
+                                {customTime ? `${customTime.start}-${customTime.end}` : 
+                                 operatingHours ? `${operatingHours.start}-${operatingHours.end}` : ''}
+                              </div>
+                              <div className="text-xs opacity-90">{shiftDuration}h</div>
                               </div>
                             ) : (
-                              <div className="text-center text-xs opacity-50">No Shift</div>
+                              <div className="text-center text-xs opacity-70">No Shift</div>
                             )}
                           </div>
                         );
@@ -1802,16 +1802,16 @@ const MasterScheduleSystem = () => {
                             return <div className="text-gray-300">No requests submitted yet.</div>;
                           }
                           
-                          return allRequests.slice(0, 5).map((request, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-white bg-opacity-10 rounded">
-                              <div>
-                                <div className="font-medium">{request.type}</div>
-                                <div className="text-xs opacity-80">
-                                  {new Date(request.date).toLocaleDateString()}
-                                  {request.time && ` • ${request.time}`}
-                                </div>
-                                {request.reason && <div className="text-xs opacity-70">Reason: {request.reason}</div>}
-                              </div>
+                                                     return allRequests.slice(0, 5).map((request, index) => (
+                             <div key={index} className="flex items-center justify-between p-2 bg-white bg-opacity-10 rounded">
+                               <div>
+                                 <div className="font-medium">{request.type}</div>
+                                 <div className="text-xs opacity-90">
+                                   {new Date(request.date).toLocaleDateString()}
+                                   {request.time && ` • ${request.time}`}
+                                 </div>
+                                 {request.reason && <div className="text-xs opacity-80">Reason: {request.reason}</div>}
+                               </div>
                               <div className={`text-xs px-2 py-1 rounded font-semibold ${
                                 request.status === 'approved' ? 'bg-green-600 text-white' :
                                 request.status === 'denied' ? 'bg-red-600 text-white' :
