@@ -197,7 +197,7 @@ const MasterScheduleSystem = () => {
     console.log('Updated schedule:', updatedBaseSchedule);
     
     setBaseSchedule(updatedBaseSchedule);
-    localStorage.setItem('safetySchedule_baseSchedule', JSON.stringify(updatedBaseSchedule));
+    saveDataWithSync('safetySchedule_baseSchedule', updatedBaseSchedule);
     
     // Force a re-render by updating a related state
     setCurrentWeek(prev => prev); // This will trigger a re-render
@@ -214,6 +214,46 @@ const MasterScheduleSystem = () => {
     setDragState(null);
     setDragOverState(null);
   };
+
+  // Enhanced localStorage with better sync
+  const saveDataWithSync = (key, data) => {
+    // Save to localStorage
+    localStorage.setItem(key, JSON.stringify(data));
+    
+    // Add a timestamp for sync tracking
+    localStorage.setItem(`${key}_timestamp`, Date.now().toString());
+    
+    // Create a custom event for cross-tab sync
+    const syncEvent = new CustomEvent('safetyScheduleDataChange', {
+      detail: { key, data, timestamp: Date.now() }
+    });
+    window.dispatchEvent(syncEvent);
+    
+    console.log(`Data saved with sync: ${key}`);
+  };
+
+  // Listen for data changes from other tabs
+  useEffect(() => {
+    const handleDataChange = (event) => {
+      const { key, data, timestamp } = event.detail;
+      const lastSync = localStorage.getItem(`${key}_last_sync`) || '0';
+      
+      if (timestamp > parseInt(lastSync)) {
+        localStorage.setItem(key, JSON.stringify(data));
+        localStorage.setItem(`${key}_last_sync`, timestamp.toString());
+        
+        // Update state if it's baseSchedule
+        if (key === 'safetySchedule_baseSchedule') {
+          setBaseSchedule(data);
+        }
+        
+        console.log(`Synced data from other tab: ${key}`);
+      }
+    };
+
+    window.addEventListener('safetyScheduleDataChange', handleDataChange);
+    return () => window.removeEventListener('safetyScheduleDataChange', handleDataChange);
+  }, []);
 
   // Staff information
   const [staffInfo, setStaffInfo] = useState(() => {
@@ -363,7 +403,7 @@ const MasterScheduleSystem = () => {
       if (hasChanges) {
         console.log('Cleaning up corrupted data...');
         setBaseSchedule(updatedBaseSchedule);
-        localStorage.setItem('safetySchedule_baseSchedule', JSON.stringify(updatedBaseSchedule));
+        saveDataWithSync('safetySchedule_baseSchedule', updatedBaseSchedule);
       }
     };
     
@@ -2505,7 +2545,7 @@ const MasterScheduleSystem = () => {
                                         }
                                         
                                         setBaseSchedule(updatedBaseSchedule);
-                                        localStorage.setItem('safetySchedule_baseSchedule', JSON.stringify(updatedBaseSchedule));
+                                        saveDataWithSync('safetySchedule_baseSchedule', updatedBaseSchedule);
                                         
                                         console.log('Assignment updated:', updatedBaseSchedule[currentWeek].assignments[day]);
                                       }}
