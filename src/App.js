@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Target, Clock, Settings, Edit3, Users, BarChart3, Upload, CalendarX, MapPin, Calendar } from 'lucide-react';
 
 // ===== PASSWORD CONFIGURATION =====
@@ -79,6 +79,23 @@ const MasterScheduleSystem = () => {
   });
   const [pendingChanges, setPendingChanges] = useState({});
   const [editingTime, setEditingTime] = useState(null); // { day, location, field: 'start' | 'end' }
+
+  // Force master view when calendar is open
+  useEffect(() => {
+    if (showCalendar && viewMode !== 'master') {
+      setViewMode('master');
+      console.log('Forcing master view in calendar');
+    }
+  }, [showCalendar, viewMode]);
+
+  // Prevent view mode changes when calendar is open
+  const handleViewModeChange = (newMode) => {
+    if (showCalendar) {
+      console.log('View mode change blocked - calendar is open');
+      return;
+    }
+    setViewMode(newMode);
+  };
 
   // Staff information
   const [staffInfo, setStaffInfo] = useState({
@@ -692,13 +709,15 @@ const MasterScheduleSystem = () => {
               </button>
 
               <button
-                onClick={() => setViewMode(viewMode === 'master' ? 'individual' : 'master')}
+                onClick={() => handleViewModeChange(viewMode === 'master' ? 'individual' : 'master')}
+                disabled={showCalendar}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   viewMode === 'individual' ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                } ${showCalendar ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Users className="w-3 h-3 lg:w-4 lg:h-4" />
                 {viewMode === 'master' ? 'Individual View' : 'Master View'}
+                {showCalendar && ' (Disabled in Calendar)'}
               </button>
 
               <button
@@ -1009,6 +1028,11 @@ const MasterScheduleSystem = () => {
             onClick={(e) => {
               // Prevent any navigation when in calendar view
               e.stopPropagation();
+              // Force master view and prevent any view mode changes
+              if (viewMode !== 'master') {
+                setViewMode('master');
+                console.log('Forcing master view from calendar click');
+              }
               console.log('Calendar view clicked - preventing navigation');
             }}
           >
