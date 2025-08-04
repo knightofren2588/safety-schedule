@@ -142,12 +142,16 @@ const MasterScheduleSystem = () => {
   // Drag and drop handlers for calendar staff swaps
   const handleDragStart = (e, staff, day, location) => {
     e.stopPropagation();
-    if (staff && day && location) {
+    const staffIsOff = isStaffOff(staff, day, currentWeek);
+    console.log('Drag start attempt:', staff, day, location, 'isOff:', staffIsOff);
+    if (staff && day && location && !staffIsOff) {
       setDragState({ staff, day, location, week: currentWeek });
-      console.log('Drag started:', staff, day, location);
+      console.log('Drag started successfully:', staff, day, location);
       // Set drag image
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', `${staff}-${day}-${location}`);
+    } else {
+      console.log('Drag start failed - missing data or staff is off');
     }
   };
 
@@ -161,7 +165,12 @@ const MasterScheduleSystem = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!dragState) return;
+    console.log('Drop attempt:', targetStaff, targetDay, targetLocation, 'dragState:', dragState);
+    
+    if (!dragState) {
+      console.log('Drop failed - no drag state');
+      return;
+    }
     
     const { staff: sourceStaff, day: sourceDay, location: sourceLocation } = dragState;
     
@@ -503,7 +512,7 @@ const MasterScheduleSystem = () => {
     } catch (error) {
       console.error('Error generating missing week:', error);
     }
-  }, [currentWeek, baseSchedule, generateWeekSchedule]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentWeek]); // Removed baseSchedule and generateWeekSchedule to prevent infinite loops
 
   // Function to get the current week number based on today's date
   const getCurrentWeekNumber = () => {
@@ -1473,10 +1482,12 @@ const MasterScheduleSystem = () => {
                               darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-200'
                             } ${
                               dragState && dragState.staff === staff && dragState.day === day && dragState.location === location
-                                ? 'opacity-50 scale-95' : ''
+                                ? 'opacity-50 scale-95 shadow-lg' : ''
                             } ${
                               dragOverState && dragOverState.staff === staff && dragOverState.day === day && dragOverState.location === location
                                 ? 'ring-2 ring-yellow-400 ring-opacity-75 scale-105' : ''
+                            } ${
+                              dragState && !isOff && location ? 'cursor-grab active:cursor-grabbing' : ''
                             }`}
                             title={location && !isOff ? `Drag ${staff} to swap with another staff member` : ''}
                             onClick={(e) => {
@@ -1484,6 +1495,12 @@ const MasterScheduleSystem = () => {
                               if (!dragState) {
                                 e.stopPropagation();
                                 console.log('Calendar cell clicked:', day, location, staff);
+                              }
+                            }}
+                            onMouseDown={(e) => {
+                              // Prevent text selection during drag
+                              if (location && !isOff) {
+                                e.preventDefault();
                               }
                             }}
                           >
