@@ -78,6 +78,7 @@ const MasterScheduleSystem = () => {
     closedDays: [] 
   });
   const [pendingChanges, setPendingChanges] = useState({});
+  const [editingTime, setEditingTime] = useState(null); // { day, location, field: 'start' | 'end' }
 
   // Staff information
   const [staffInfo, setStaffInfo] = useState({
@@ -540,6 +541,26 @@ const MasterScheduleSystem = () => {
   const hasPendingChanges = (day, location, weekNum) => {
     const changeKey = `${weekNum}-${day}-${location}`;
     return !!pendingChanges[changeKey];
+  };
+
+  const handleInlineTimeEdit = (day, location, field, value) => {
+    const currentTime = getCustomShiftTime(day, location, currentWeek) || { start: '', end: '' };
+    const newTime = { ...currentTime, [field]: value };
+    
+    // Store as pending change for display
+    const changeKey = `${currentWeek}-${day}-${location}`;
+    setPendingChanges(prev => ({
+      ...prev,
+      [changeKey]: { ...prev[changeKey], time: newTime }
+    }));
+    
+    // Auto-save immediately with the changes
+    const changesToSave = { time: newTime };
+    if (newTime.start && newTime.end) {
+      const calculatedHours = calculateHoursFromTimes(newTime.start, newTime.end);
+      changesToSave.duration = calculatedHours;
+    }
+    saveShiftChanges(day, location, currentWeek, changesToSave);
   };
 
   const currentSchedule = baseSchedule[currentWeek];
@@ -2211,10 +2232,60 @@ const MasterScheduleSystem = () => {
                                     <Clock className="w-3 h-3" />
                                     {(() => {
                                       const customTime = getCustomShiftTime(day, location, currentWeek);
-                                      if (customTime && customTime.start && customTime.end) {
-                                        return `${customTime.start} - ${customTime.end} (${customDuration}h)`;
+                                      const isEditing = editingTime && editingTime.day === day && editingTime.location === location;
+                                      
+                                      if (isEditing && editingTime.field === 'start') {
+                                        return (
+                                          <input
+                                            type="text"
+                                            placeholder="7:30a"
+                                            value={customTime?.start || shiftHours.start}
+                                            onChange={(e) => handleInlineTimeEdit(day, location, 'start', e.target.value)}
+                                            onBlur={() => setEditingTime(null)}
+                                            onKeyPress={(e) => {
+                                              if (e.key === 'Enter') {
+                                                setEditingTime(null);
+                                              }
+                                            }}
+                                            className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
+                                            autoFocus
+                                          />
+                                        );
+                                      } else if (isEditing && editingTime.field === 'end') {
+                                        return (
+                                          <span>
+                                            {customTime?.start || shiftHours.start} - 
+                                            <input
+                                              type="text"
+                                              placeholder="7:30p"
+                                              value={customTime?.end || shiftHours.end}
+                                              onChange={(e) => handleInlineTimeEdit(day, location, 'end', e.target.value)}
+                                              onBlur={() => setEditingTime(null)}
+                                              onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                  setEditingTime(null);
+                                                }
+                                              }}
+                                              className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold ml-1"
+                                              autoFocus
+                                            />
+                                            ({customDuration}h)
+                                          </span>
+                                        );
+                                      } else {
+                                        return (
+                                          <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded">
+                                            <span onClick={() => setEditingTime({ day, location, field: 'start' })}>
+                                              {customTime?.start || shiftHours.start}
+                                            </span>
+                                            {' - '}
+                                            <span onClick={() => setEditingTime({ day, location, field: 'end' })}>
+                                              {customTime?.end || shiftHours.end}
+                                            </span>
+                                            {' ('}{customDuration}h)
+                                          </span>
+                                        );
                                       }
-                                      return `${shiftHours.start} - ${shiftHours.end} (${customDuration}h)`;
                                     })()}
                                   </div>
                                 </div>
