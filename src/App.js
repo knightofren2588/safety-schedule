@@ -325,63 +325,72 @@ const MasterScheduleSystem = () => {
 
   // Generate schedule for a specific week
   const generateWeekSchedule = (weekNum) => {
-    const dates = getWeekDates(weekNum);
-    const firstDate = dates[0];
-    const lastDate = dates[6];
-    const monthYear = getWeekMonthYear(weekNum);
-    
-    // Staff rotation pattern (4-week cycle)
-    const staffRotation = ['Kyle', 'Tyler', 'Mia', 'Kyle'];
-    const saturdayStaff = staffRotation[(weekNum - 1) % 4];
-    
-    // Base assignments pattern (rotates every 4 weeks)
-    const basePatterns = [
-      // Week 1 pattern
-      {
-        Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
-        Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
-        Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
-        Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
-        Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
-      },
-      // Week 2 pattern
-      {
-        Monday: { 'Short North': 'Tyler', 'KL': 'Kyle', 'Safepoint': null },
-        Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
-        Wednesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Thursday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' },
-        Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
-        Saturday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' }
-      },
-      // Week 3 pattern
-      {
-        Monday: { 'Short North': 'Mia', 'KL': 'Tyler', 'Safepoint': null },
-        Tuesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Wednesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
-        Thursday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
-        Friday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Saturday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Kyle' }
-      },
-      // Week 4 pattern
-      {
-        Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
-        Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
-        Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
-        Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
-        Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
-        Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
-      }
-    ];
-    
-    const patternIndex = (weekNum - 1) % 4;
-    const assignments = basePatterns[patternIndex];
-    
-    return {
-      title: `Week ${weekNum} - ${monthYear.month} ${formatDate(firstDate)}-${formatDate(lastDate)}`,
-      saturdayStaff,
-      assignments
-    };
+    try {
+      const dates = getWeekDates(weekNum);
+      const firstDate = dates[0];
+      const lastDate = dates[6];
+      const monthYear = getWeekMonthYear(weekNum);
+      
+      // Staff rotation pattern (4-week cycle)
+      const staffRotation = ['Kyle', 'Tyler', 'Mia', 'Kyle'];
+      const saturdayStaff = staffRotation[(weekNum - 1) % 4];
+      
+      // Base assignments pattern (rotates every 4 weeks)
+      const basePatterns = [
+        // Week 1 pattern
+        {
+          Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
+          Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+          Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
+          Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
+          Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+          Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
+        },
+        // Week 2 pattern
+        {
+          Monday: { 'Short North': 'Tyler', 'KL': 'Kyle', 'Safepoint': null },
+          Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
+          Wednesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
+          Thursday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' },
+          Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
+          Saturday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' }
+        },
+        // Week 3 pattern
+        {
+          Monday: { 'Short North': 'Mia', 'KL': 'Tyler', 'Safepoint': null },
+          Tuesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
+          Wednesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+          Thursday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
+          Friday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
+          Saturday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Kyle' }
+        },
+        // Week 4 pattern
+        {
+          Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
+          Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+          Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
+          Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
+          Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
+          Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
+        }
+      ];
+      
+      const patternIndex = (weekNum - 1) % 4;
+      const assignments = basePatterns[patternIndex];
+      
+      return {
+        title: `Week ${weekNum} - ${monthYear.month} ${formatDate(firstDate)}-${formatDate(lastDate)}`,
+        saturdayStaff,
+        assignments
+      };
+    } catch (error) {
+      console.error('Error generating week schedule:', error);
+      return {
+        title: `Week ${weekNum}`,
+        saturdayStaff: 'Kyle',
+        assignments: {}
+      };
+    }
   };
 
   // Base schedule data with dynamic generation
@@ -400,7 +409,7 @@ const MasterScheduleSystem = () => {
     return initialSchedule;
   });
 
-  // Clean up corrupted data with undefined locations
+  // Clean up corrupted data and generate missing weeks
   useEffect(() => {
     const cleanupCorruptedData = () => {
       const updatedBaseSchedule = { ...baseSchedule };
@@ -432,25 +441,50 @@ const MasterScheduleSystem = () => {
     cleanupCorruptedData();
   }, [baseSchedule]);
 
+  // Generate missing weeks when currentWeek changes
+  useEffect(() => {
+    try {
+      if (!baseSchedule[currentWeek]) {
+        console.log('Generating schedule for week:', currentWeek);
+        const newSchedule = generateWeekSchedule(currentWeek);
+        const updatedBaseSchedule = { ...baseSchedule, [currentWeek]: newSchedule };
+        setBaseSchedule(updatedBaseSchedule);
+        saveDataWithSync('safetySchedule_baseSchedule', updatedBaseSchedule);
+      }
+    } catch (error) {
+      console.error('Error generating missing week:', error);
+    }
+  }, [currentWeek, baseSchedule, generateWeekSchedule]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Date functions
   // Dynamic week system supporting multiple months
   const START_DATE = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
   const TOTAL_WEEKS = 52; // Support up to 52 weeks (1 year)
   
   const getWeekDates = (weekNum) => {
-    const targetWeek = weekNum - 1;
-    
-    const monday = new Date(START_DATE);
-    monday.setDate(monday.getDate() + (targetWeek * 7));
-    
-    const dates = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
-      dates.push(date);
+    try {
+      const targetWeek = weekNum - 1;
+      
+      const monday = new Date(START_DATE);
+      monday.setDate(monday.getDate() + (targetWeek * 7));
+      
+      const dates = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        dates.push(date);
+      }
+      
+      return dates;
+    } catch (error) {
+      console.error('Error getting week dates:', error);
+      // Return fallback dates
+      const fallbackDates = [];
+      for (let i = 0; i < 7; i++) {
+        fallbackDates.push(new Date(2024, 7, 4 + i));
+      }
+      return fallbackDates;
     }
-    
-    return dates;
   };
 
   const getWeekMonthYear = (weekNum) => {
@@ -815,20 +849,13 @@ const MasterScheduleSystem = () => {
     saveShiftChanges(day, location, currentWeek, changesToSave);
   };
 
-  // Get current schedule for the selected week, generate if doesn't exist
+  // Get current schedule for the selected week
   const getCurrentSchedule = (weekNum) => {
-    if (!baseSchedule[weekNum]) {
-      // Generate the schedule for this week
-      const newSchedule = generateWeekSchedule(weekNum);
-      
-      // Update baseSchedule with the new week
-      const updatedBaseSchedule = { ...baseSchedule, [weekNum]: newSchedule };
-      setBaseSchedule(updatedBaseSchedule);
-      saveDataWithSync('safetySchedule_baseSchedule', updatedBaseSchedule);
-      
-      return newSchedule;
-    }
-    return baseSchedule[weekNum];
+    return baseSchedule[weekNum] || {
+      title: `Week ${weekNum}`,
+      saturdayStaff: 'Kyle',
+      assignments: {}
+    };
   };
 
   const currentSchedule = getCurrentSchedule(currentWeek);
