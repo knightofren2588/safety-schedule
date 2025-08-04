@@ -518,7 +518,7 @@ const MasterScheduleSystem = () => {
     } catch (error) {
       console.error('Error generating missing week:', error);
     }
-  }, [currentWeek, generateWeekSchedule]); // Only include stable dependencies
+  }, [currentWeek]); // Simplified dependencies to prevent infinite loops
 
   // Function to get the current week number based on today's date
   const getCurrentWeekNumber = () => {
@@ -1557,6 +1557,10 @@ const MasterScheduleSystem = () => {
                                 e.preventDefault();
                               }
                             }}
+                            onDragEnter={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
                           >
                             {isOff ? (
                               <div className="text-center">
@@ -2040,6 +2044,96 @@ const MasterScheduleSystem = () => {
                 </div>
               </div>
 
+              {/* Late Employee Log */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Late Employees ({Object.values(lateEmployees).flat().length})
+                </h4>
+                <div className="space-y-3">
+                  {Object.entries(lateEmployees).map(([date, lateList]) => (
+                    <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setLateEmployees(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {lateList.map((late, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-orange-700' : 'bg-orange-100'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {late.staff} - {late.day}
+                              </span>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    setLateEmployees(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].filter((_, i) => i !== index)
+                                      };
+                                      if (updated[date].length === 0) {
+                                        delete updated[date];
+                                      }
+                                      localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                  }}
+                                  className="text-green-600 hover:text-green-800 text-xs"
+                                >
+                                  Mark On Time
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setLateEmployees(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].filter((_, i) => i !== index)
+                                      };
+                                      if (updated[date].length === 0) {
+                                        delete updated[date];
+                                      }
+                                      localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                            {late.reason && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Reason: {late.reason}
+                              </div>
+                            )}
+                            {late.timestamp && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Marked: {new Date(late.timestamp).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Early Arrival Requests */}
               <div>
                 <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -2143,8 +2237,8 @@ const MasterScheduleSystem = () => {
                               </div>
                             </div>
                             <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              {request.time ? (
-                                <div>Requested Time: {request.time} ({request.hours}h)</div>
+                              {request.requestedStart ? (
+                                <div>Requested Time: {request.requestedStart} (currently {request.currentStart})</div>
                               ) : (
                                 <div>Current: {request.currentStart} → Requested: {request.requestedStart}</div>
                               )}
