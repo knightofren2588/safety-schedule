@@ -153,6 +153,14 @@ const MasterScheduleSystem = () => {
     
     console.log('Drop:', sourceStaff, sourceDay, sourceLocation, '->', targetStaff, targetDay, targetLocation);
     
+    // Safety check for undefined targetLocation
+    if (!targetLocation) {
+      console.log('Cannot drop - targetLocation is undefined');
+      setDragState(null);
+      setDragOverState(null);
+      return;
+    }
+    
     // Perform the staff swap
     const updatedBaseSchedule = { ...baseSchedule };
     
@@ -413,22 +421,34 @@ const MasterScheduleSystem = () => {
   };
 
   const getOperatingHours = (location, day) => {
-    if (day === 'Saturday') {
-      return saturdayHours[location];
+    // Safety check for undefined location
+    if (!location) {
+      console.log('getOperatingHours called with undefined location:', location, day);
+      return null;
     }
-    return baseShiftHours[location];
+    
+    if (day === 'Saturday') {
+      return saturdayHours[location] || null;
+    }
+    return baseShiftHours[location] || null;
   };
 
   const getShiftDuration = (day, location, weekNum) => {
+    // Safety check for undefined location
+    if (!location) {
+      console.log('getShiftDuration called with undefined location:', day, location, weekNum);
+      return 0;
+    }
+    
     const shiftKey = `${weekNum}-${day}-${location}`;
     const customTime = getCustomShiftTime(day, location, weekNum);
     
     if (customTime && customTime.start && customTime.end) {
       const calculatedHours = calculateHoursFromTimes(customTime.start, customTime.end);
-      return calculatedHours || (day === 'Saturday' ? saturdayHours[location].duration : baseShiftHours[location].duration);
+      return calculatedHours || (day === 'Saturday' ? saturdayHours[location]?.duration || 0 : baseShiftHours[location]?.duration || 0);
     }
     
-    return customHours[shiftKey] || (day === 'Saturday' ? saturdayHours[location].duration : baseShiftHours[location].duration);
+    return customHours[shiftKey] || (day === 'Saturday' ? saturdayHours[location]?.duration || 0 : baseShiftHours[location]?.duration || 0);
   };
 
   const updateShiftDuration = (day, location, weekNum, newDuration) => {
