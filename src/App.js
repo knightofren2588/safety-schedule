@@ -544,6 +544,7 @@ const MasterScheduleSystem = () => {
   };
 
   const handleInlineTimeEdit = (day, location, field, value) => {
+    console.log('handleInlineTimeEdit called:', day, location, field, value);
     const currentTime = getCustomShiftTime(day, location, currentWeek) || { start: '', end: '' };
     const newTime = { ...currentTime, [field]: value };
     
@@ -2223,11 +2224,13 @@ const MasterScheduleSystem = () => {
                                   </div>
                                 </div>
                               )}
-                              {!editMode && assignment && (
+                              {!editMode && (
                                 <div>
-                                  <div className="font-semibold flex items-center justify-between">
-                                    <strong>{assignment}</strong>
-                                  </div>
+                                  {assignment && (
+                                    <div className="font-semibold flex items-center justify-between">
+                                      <strong>{assignment}</strong>
+                                    </div>
+                                  )}
                                   <div className="text-xs opacity-75 flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
                                     {(() => {
@@ -2275,11 +2278,25 @@ const MasterScheduleSystem = () => {
                                       } else {
                                         return (
                                           <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded">
-                                            <span onClick={() => setEditingTime({ day, location, field: 'start' })}>
+                                            <span 
+                                              onClick={() => {
+                                                console.log('Start time clicked:', day, location);
+                                                setEditingTime({ day, location, field: 'start' });
+                                              }}
+                                              className="hover:underline"
+                                              title="Click to edit start time"
+                                            >
                                               {customTime?.start || shiftHours.start}
                                             </span>
                                             {' - '}
-                                            <span onClick={() => setEditingTime({ day, location, field: 'end' })}>
+                                            <span 
+                                              onClick={() => {
+                                                console.log('End time clicked:', day, location);
+                                                setEditingTime({ day, location, field: 'end' });
+                                              }}
+                                              className="hover:underline"
+                                              title="Click to edit end time"
+                                            >
                                               {customTime?.end || shiftHours.end}
                                             </span>
                                             {' ('}{customDuration}h)
@@ -2288,6 +2305,82 @@ const MasterScheduleSystem = () => {
                                       }
                                     })()}
                                   </div>
+                                </div>
+                              )}
+                              {editMode && (
+                                <div className="text-xs opacity-75 flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {(() => {
+                                    const customTime = getCustomShiftTime(day, location, currentWeek);
+                                    const isEditing = editingTime && editingTime.day === day && editingTime.location === location;
+                                    
+                                    if (isEditing && editingTime.field === 'start') {
+                                      return (
+                                        <input
+                                          type="text"
+                                          placeholder="7:30a"
+                                          value={customTime?.start || shiftHours.start}
+                                          onChange={(e) => handleInlineTimeEdit(day, location, 'start', e.target.value)}
+                                          onBlur={() => setEditingTime(null)}
+                                          onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                              setEditingTime(null);
+                                            }
+                                          }}
+                                          className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
+                                          autoFocus
+                                        />
+                                      );
+                                    } else if (isEditing && editingTime.field === 'end') {
+                                      return (
+                                        <span>
+                                          {customTime?.start || shiftHours.start} - 
+                                          <input
+                                            type="text"
+                                            placeholder="7:30p"
+                                            value={customTime?.end || shiftHours.end}
+                                            onChange={(e) => handleInlineTimeEdit(day, location, 'end', e.target.value)}
+                                            onBlur={() => setEditingTime(null)}
+                                            onKeyPress={(e) => {
+                                              if (e.key === 'Enter') {
+                                                setEditingTime(null);
+                                              }
+                                            }}
+                                            className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold ml-1"
+                                            autoFocus
+                                          />
+                                          ({customDuration}h)
+                                        </span>
+                                      );
+                                    } else {
+                                      return (
+                                        <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded">
+                                          <span 
+                                            onClick={() => {
+                                              console.log('Start time clicked (edit mode):', day, location);
+                                              setEditingTime({ day, location, field: 'start' });
+                                            }}
+                                            className="hover:underline"
+                                            title="Click to edit start time"
+                                          >
+                                            {customTime?.start || shiftHours.start}
+                                          </span>
+                                          {' - '}
+                                          <span 
+                                            onClick={() => {
+                                              console.log('End time clicked (edit mode):', day, location);
+                                              setEditingTime({ day, location, field: 'end' });
+                                            }}
+                                            className="hover:underline"
+                                            title="Click to edit end time"
+                                          >
+                                            {customTime?.end || shiftHours.end}
+                                          </span>
+                                          {' ('}{customDuration}h)
+                                        </span>
+                                      );
+                                    }
+                                  })()}
                                 </div>
                               )}
                             </div>
