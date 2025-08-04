@@ -1148,9 +1148,42 @@ const MasterScheduleSystem = () => {
                                       </span>
                                     );
                                   } else {
+                                    console.log('Calendar time display:', day, location, timeText);
+                                    
+                                    // If timeText is empty or doesn't contain a dash, show default times
+                                    if (!timeText || !timeText.includes('-')) {
+                                      const defaultStart = operatingHours?.start || '7:30a';
+                                      const defaultEnd = operatingHours?.end || '7:30p';
+                                      return (
+                                        <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded border border-dashed border-white border-opacity-50">
+                                          <span 
+                                            onClick={() => {
+                                              console.log('Calendar start time clicked (default):', day, location);
+                                              setEditingTime({ day, location, field: 'start' });
+                                            }}
+                                            className="hover:underline"
+                                            title="Click to edit start time"
+                                          >
+                                            {defaultStart}
+                                          </span>
+                                          {' - '}
+                                          <span 
+                                            onClick={() => {
+                                              console.log('Calendar end time clicked (default):', day, location);
+                                              setEditingTime({ day, location, field: 'end' });
+                                            }}
+                                            className="hover:underline"
+                                            title="Click to edit end time"
+                                          >
+                                            {defaultEnd}
+                                          </span>
+                                        </span>
+                                      );
+                                    }
+                                    
                                     const [startTime, endTime] = timeText.split('-');
                                     return (
-                                      <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded">
+                                      <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded border border-dashed border-white border-opacity-50">
                                         <span 
                                           onClick={() => {
                                             console.log('Calendar start time clicked:', day, location);
@@ -1159,7 +1192,7 @@ const MasterScheduleSystem = () => {
                                           className="hover:underline"
                                           title="Click to edit start time"
                                         >
-                                          {startTime}
+                                          {startTime || 'Click to set'}
                                         </span>
                                         {' - '}
                                         <span 
@@ -1170,7 +1203,7 @@ const MasterScheduleSystem = () => {
                                           className="hover:underline"
                                           title="Click to edit end time"
                                         >
-                                          {endTime}
+                                          {endTime || 'Click to set'}
                                         </span>
                                       </span>
                                     );
