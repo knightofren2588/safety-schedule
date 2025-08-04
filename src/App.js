@@ -1054,8 +1054,10 @@ const MasterScheduleSystem = () => {
                        const isOff = isStaffOff(staff, day, currentWeek);
                       
                       // Get staff's assignment for this day
-                      const location = currentSchedule[day] ? 
-                        Object.keys(currentSchedule[day]).find(loc => currentSchedule[day][loc] === staff) : null;
+                      const location = baseSchedule[currentWeek]?.assignments[day] ? 
+                        Object.keys(baseSchedule[currentWeek].assignments[day]).find(loc => 
+                          baseSchedule[currentWeek].assignments[day][loc] === staff
+                        ) : null;
                       
                       const shiftDuration = location ? getShiftDuration(day, location, currentWeek) : 0;
                       const customTime = location ? getCustomShiftTime(day, location, currentWeek) : null;
@@ -1103,12 +1105,14 @@ const MasterScheduleSystem = () => {
                     
                     // Calculate total hours for this day
                     let totalHours = 0;
-                    Object.keys(currentSchedule[day] || {}).forEach(location => {
-                      const staff = currentSchedule[day][location];
-                      if (staff && !isStaffOff(staff, day, currentWeek)) {
-                        totalHours += getShiftDuration(day, location, currentWeek);
-                      }
-                    });
+                    if (baseSchedule[currentWeek]?.assignments[day]) {
+                      Object.keys(baseSchedule[currentWeek].assignments[day]).forEach(location => {
+                        const staff = baseSchedule[currentWeek].assignments[day][location];
+                        if (staff && !isStaffOff(staff, day, currentWeek)) {
+                          totalHours += getShiftDuration(day, location, currentWeek);
+                        }
+                      });
+                    }
                     
                     return (
                       <div key={dayIndex} className={`p-3 text-center font-semibold rounded-lg ${
