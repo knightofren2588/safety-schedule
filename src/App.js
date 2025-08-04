@@ -1091,11 +1091,19 @@ const MasterScheduleSystem = () => {
                         const operatingHours = location ? getOperatingHours(location, day) : null;
                         
                         return (
-                          <div key={dayIndex} className={`p-3 rounded-lg border ${
-                            isOff ? 'bg-red-100 border-red-300' :
-                            location ? `${staffInfo[staff].color} text-white` :
-                            darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-200'
-                          }`}>
+                          <div 
+                            key={dayIndex} 
+                            className={`p-3 rounded-lg border ${
+                              isOff ? 'bg-red-100 border-red-300' :
+                              location ? `${staffInfo[staff].color} text-white` :
+                              darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-200'
+                            }`}
+                            onClick={(e) => {
+                              // Prevent navigation when clicking on calendar cells
+                              e.stopPropagation();
+                              console.log('Calendar cell clicked:', day, location, staff);
+                            }}
+                          >
                             {isOff ? (
                               <div className="text-center">
                                 <div className="text-xs font-semibold text-red-600">OFF</div>
