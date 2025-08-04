@@ -681,7 +681,11 @@ const MasterScheduleSystem = () => {
     saveShiftChanges(day, location, currentWeek, changesToSave);
   };
 
-  const currentSchedule = baseSchedule[currentWeek];
+  const currentSchedule = baseSchedule[currentWeek] || {
+    title: `Week ${currentWeek}`,
+    saturdayStaff: 'Kyle',
+    assignments: {}
+  };
   const baseHours = calculateBaseHours(currentWeek);
   const currentMonthYear = getWeekMonthYear(currentWeek);
   const theme = darkMode ? 'dark' : '';
@@ -1974,7 +1978,7 @@ const MasterScheduleSystem = () => {
                     </div>
                   </div>
                 </div>
-                {currentSchedule.saturdayStaff === staff && (
+                {currentSchedule?.saturdayStaff === staff && (
                   <div className="mt-2 text-xs text-yellow-600 font-semibold">
                     🎉 Saturday KL Duty
                   </div>
@@ -1994,7 +1998,7 @@ const MasterScheduleSystem = () => {
           <div className="bg-gradient-to-r from-red-600 to-orange-600 p-6">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
               <Clock className="w-6 h-6" />
-              {viewMode === 'master' ? `${currentSchedule.title} - Base Schedule` : `${selectedStaffView}'s Schedule - Week ${currentWeek}`}
+              {viewMode === 'master' ? `${currentSchedule?.title || `Week ${currentWeek}`} - Base Schedule` : `${selectedStaffView}'s Schedule - Week ${currentWeek}`}
             </h2>
           </div>
 
@@ -2358,7 +2362,7 @@ const MasterScheduleSystem = () => {
                     
                       <div className="p-4 space-y-3">
                         {locations.filter(location => !(day === 'Monday' && location === 'Safepoint')).map((location) => {
-                          const assignment = currentSchedule.assignments[day]?.[location];
+                          const assignment = currentSchedule?.assignments?.[day]?.[location];
                           const isOpen = !assignment;
                           const shiftHours = day === 'Saturday' ? saturdayHours[location] : baseShiftHours[location];
                           const customDuration = getShiftDuration(day, location, currentWeek);
