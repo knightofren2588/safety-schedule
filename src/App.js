@@ -1123,6 +1123,7 @@ const MasterScheduleSystem = () => {
                                             setEditingTime(null);
                                           }
                                         }}
+                                        onClick={(e) => e.stopPropagation()}
                                         className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
                                         autoFocus
                                       />
@@ -1142,6 +1143,7 @@ const MasterScheduleSystem = () => {
                                               setEditingTime(null);
                                             }
                                           }}
+                                          onClick={(e) => e.stopPropagation()}
                                           className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold ml-1"
                                           autoFocus
                                         />
@@ -1157,7 +1159,8 @@ const MasterScheduleSystem = () => {
                                       return (
                                         <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded border border-dashed border-white border-opacity-50">
                                           <span 
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                              e.stopPropagation();
                                               console.log('Calendar start time clicked (default):', day, location);
                                               setEditingTime({ day, location, field: 'start' });
                                             }}
@@ -1168,7 +1171,8 @@ const MasterScheduleSystem = () => {
                                           </span>
                                           {' - '}
                                           <span 
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                              e.stopPropagation();
                                               console.log('Calendar end time clicked (default):', day, location);
                                               setEditingTime({ day, location, field: 'end' });
                                             }}
@@ -1185,7 +1189,8 @@ const MasterScheduleSystem = () => {
                                     return (
                                       <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded border border-dashed border-white border-opacity-50">
                                         <span 
-                                          onClick={() => {
+                                          onClick={(e) => {
+                                            e.stopPropagation();
                                             console.log('Calendar start time clicked:', day, location);
                                             setEditingTime({ day, location, field: 'start' });
                                           }}
@@ -1196,7 +1201,8 @@ const MasterScheduleSystem = () => {
                                         </span>
                                         {' - '}
                                         <span 
-                                          onClick={() => {
+                                          onClick={(e) => {
+                                            e.stopPropagation();
                                             console.log('Calendar end time clicked:', day, location);
                                             setEditingTime({ day, location, field: 'end' });
                                           }}
