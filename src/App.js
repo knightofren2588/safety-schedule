@@ -135,8 +135,13 @@ const MasterScheduleSystem = () => {
   // Drag and drop handlers for calendar staff swaps
   const handleDragStart = (e, staff, day, location) => {
     e.stopPropagation();
-    setDragState({ staff, day, location, week: currentWeek });
-    console.log('Drag started:', staff, day, location);
+    if (staff && day && location) {
+      setDragState({ staff, day, location, week: currentWeek });
+      console.log('Drag started:', staff, day, location);
+      // Set drag image
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', `${staff}-${day}-${location}`);
+    }
   };
 
   const handleDragOver = (e, staff, day, location) => {
@@ -1319,9 +1324,11 @@ const MasterScheduleSystem = () => {
                             }`}
                             title={location && !isOff ? `Drag ${staff} to swap with another staff member` : ''}
                             onClick={(e) => {
-                              // Prevent navigation when clicking on calendar cells
-                              e.stopPropagation();
-                              console.log('Calendar cell clicked:', day, location, staff);
+                              // Only handle clicks if not dragging
+                              if (!dragState) {
+                                e.stopPropagation();
+                                console.log('Calendar cell clicked:', day, location, staff);
+                              }
                             }}
                           >
                             {isOff ? (
@@ -2473,6 +2480,44 @@ const MasterScheduleSystem = () => {
                                       <strong>{assignment}</strong>
                                     </div>
                                   )}
+                                  
+                                  {/* Staff Assignment Dropdown */}
+                                  <div className="mt-2">
+                                    <select
+                                      value={assignment || ''}
+                                      onChange={(e) => {
+                                        const newStaff = e.target.value || null;
+                                        console.log('Changing assignment:', day, location, assignment, '->', newStaff);
+                                        
+                                        // Update the base schedule
+                                        const updatedBaseSchedule = { ...baseSchedule };
+                                        if (!updatedBaseSchedule[currentWeek]) {
+                                          updatedBaseSchedule[currentWeek] = { assignments: {} };
+                                        }
+                                        if (!updatedBaseSchedule[currentWeek].assignments[day]) {
+                                          updatedBaseSchedule[currentWeek].assignments[day] = {};
+                                        }
+                                        
+                                        if (newStaff) {
+                                          updatedBaseSchedule[currentWeek].assignments[day][location] = newStaff;
+                                        } else {
+                                          delete updatedBaseSchedule[currentWeek].assignments[day][location];
+                                        }
+                                        
+                                        setBaseSchedule(updatedBaseSchedule);
+                                        localStorage.setItem('safetySchedule_baseSchedule', JSON.stringify(updatedBaseSchedule));
+                                        
+                                        console.log('Assignment updated:', updatedBaseSchedule[currentWeek].assignments[day]);
+                                      }}
+                                      className="w-full p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white"
+                                    >
+                                      <option value="">No Assignment</option>
+                                      {['Kyle', 'Mia', 'Tyler', 'Mike'].map(staff => (
+                                        <option key={staff} value={staff}>{staff}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  
                                   <div className="text-xs opacity-75 flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
                                     {(() => {
