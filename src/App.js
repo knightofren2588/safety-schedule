@@ -188,14 +188,20 @@ const MasterScheduleSystem = () => {
       updatedBaseSchedule[currentWeek].assignments[sourceDay][sourceLocation] = targetStaff;
     }
     
+    console.log('Before update - baseSchedule:', baseSchedule);
+    console.log('Updated schedule:', updatedBaseSchedule);
+    
     setBaseSchedule(updatedBaseSchedule);
     localStorage.setItem('safetySchedule_baseSchedule', JSON.stringify(updatedBaseSchedule));
+    
+    // Force a re-render by updating a related state
+    setCurrentWeek(prev => prev); // This will trigger a re-render
     
     // Clear drag states
     setDragState(null);
     setDragOverState(null);
     
-    console.log('Staff swap completed');
+    console.log('Staff swap completed - localStorage saved');
   };
 
   const handleDragEnd = (e) => {
@@ -1226,7 +1232,7 @@ const MasterScheduleSystem = () => {
             </div>
 
             {/* Calendar Grid */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" key={`calendar-${currentWeek}-${JSON.stringify(baseSchedule[currentWeek]?.assignments)}`}>
               <div className="min-w-full">
                 {/* Header Row */}
                 <div className="grid grid-cols-9 gap-2 mb-2">
@@ -1276,6 +1282,17 @@ const MasterScheduleSystem = () => {
                             loc !== 'undefined' && loc !== undefined && 
                             baseSchedule[currentWeek].assignments[day][loc] === staff
                           ) : null;
+                        
+                        // Debug logging for assignment detection
+                        if (staff === 'Kyle' && day === 'Wednesday') {
+                          console.log('Kyle Wednesday assignment check:', {
+                            currentWeek,
+                            day,
+                            assignments: baseSchedule[currentWeek]?.assignments[day],
+                            foundLocation: location,
+                            staff
+                          });
+                        }
                         
                         const shiftDuration = location ? getShiftDuration(day, location, currentWeek) : 0;
                         const customTime = location ? getCustomShiftTime(day, location, currentWeek) : null;
