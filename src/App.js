@@ -1002,9 +1002,16 @@ const MasterScheduleSystem = () => {
           </div>
         )}
 
-        {/* Calendar View Panel */}
+                {/* Calendar View Panel */}
         {showCalendar && isAuthenticated && (
-          <div className={`mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+          <div 
+            className={`mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}
+            onClick={(e) => {
+              // Prevent any navigation when in calendar view
+              e.stopPropagation();
+              console.log('Calendar view clicked - preventing navigation');
+            }}
+          >
             <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               <Calendar className="w-5 h-5" />
               Full Calendar View
@@ -1237,7 +1244,7 @@ const MasterScheduleSystem = () => {
                 })}
               </div>
             </div>
-                    </div>
+          </div>
         )}
 
         {/* Call-Off & PTO Manager Panel */}
