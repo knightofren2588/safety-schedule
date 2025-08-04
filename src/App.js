@@ -55,6 +55,12 @@ const MasterScheduleSystem = () => {
     return saved ? JSON.parse(saved) : {};
   });
 
+  // Late employees state
+  const [lateEmployees, setLateEmployees] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_lateEmployees');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('master');
   const [selectedStaffView, setSelectedStaffView] = useState('Kyle');
@@ -512,7 +518,7 @@ const MasterScheduleSystem = () => {
     } catch (error) {
       console.error('Error generating missing week:', error);
     }
-  }, [currentWeek]); // Removed baseSchedule and generateWeekSchedule to prevent infinite loops
+  }, [currentWeek, generateWeekSchedule]); // Only include stable dependencies
 
   // Function to get the current week number based on today's date
   const getCurrentWeekNumber = () => {
@@ -619,6 +625,54 @@ const MasterScheduleSystem = () => {
     
     setCancelledShifts(updatedCancelledShifts);
     localStorage.setItem('safetySchedule_cancelledShifts', JSON.stringify(updatedCancelledShifts));
+  };
+
+  // Check if employee is late
+  const isEmployeeLate = (staff, day, weekNum) => {
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    const lateList = lateEmployees[dateKey] || [];
+    return lateList.some(late => 
+      late.staff === staff && late.day === day
+    );
+  };
+
+  // Toggle employee late status
+  const toggleEmployeeLate = (staff, day, weekNum, reason = 'Late Arrival') => {
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    const updatedLateEmployees = { ...lateEmployees };
+    
+    if (!updatedLateEmployees[dateKey]) {
+      updatedLateEmployees[dateKey] = [];
+    }
+    
+    const existingIndex = updatedLateEmployees[dateKey].findIndex(
+      late => late.staff === staff && late.day === day
+    );
+    
+    if (existingIndex >= 0) {
+      // Remove late status
+      updatedLateEmployees[dateKey].splice(existingIndex, 1);
+      if (updatedLateEmployees[dateKey].length === 0) {
+        delete updatedLateEmployees[dateKey];
+      }
+    } else {
+      // Add late status
+      updatedLateEmployees[dateKey].push({
+        staff,
+        day,
+        reason,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    setLateEmployees(updatedLateEmployees);
+    localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updatedLateEmployees));
   };
 
   const getAvailableStaff = (day, weekNum) => {
@@ -1512,6 +1566,11 @@ const MasterScheduleSystem = () => {
                             ) : location ? (
                               <div className="text-center">
                                 <div className="text-xs font-semibold">{location}</div>
+                                {location && isEmployeeLate(staff, day, currentWeek) && (
+                                  <div className="text-xs bg-orange-500 text-white px-1 py-0.5 rounded-full mt-1">
+                                    LATE
+                                  </div>
+                                )}
                                 <div className="text-xs opacity-90">
                                   {(() => {
                                     const isEditing = calendarEditingTime && calendarEditingTime.day === day && calendarEditingTime.location === location;
@@ -2647,6 +2706,11 @@ const MasterScheduleSystem = () => {
                                       CANCELLED
                                     </span>
                                   )}
+                                  {assignment && isEmployeeLate(assignment, day, currentWeek) && (
+                                    <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full">
+                                      LATE
+                                    </span>
+                                  )}
                                   {isOpen && (
                                     <span className="text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
                                       PICKUP
@@ -2714,6 +2778,21 @@ const MasterScheduleSystem = () => {
                                     >
                                       {isShiftCancelled(day, location, currentWeek) ? '🔄 Restore' : '❌ Cancel'}
                                     </button>
+                                    
+                                    {/* Late Employee Button */}
+                                    {assignment && (
+                                      <button
+                                        onClick={() => toggleEmployeeLate(assignment, day, currentWeek)}
+                                        className={`ml-2 px-2 py-1 text-xs rounded ${
+                                          isEmployeeLate(assignment, day, currentWeek)
+                                            ? 'bg-green-500 hover:bg-green-600 text-white'
+                                            : 'bg-orange-500 hover:bg-orange-600 text-white'
+                                        }`}
+                                        title={isEmployeeLate(assignment, day, currentWeek) ? 'Mark On Time' : 'Mark Late'}
+                                      >
+                                        {isEmployeeLate(assignment, day, currentWeek) ? '✅ On Time' : '⏰ Late'}
+                                      </button>
+                                    )}
                                     {(() => {
                                       const customTime = getCustomShiftTime(day, location, currentWeek);
                                       const isEditing = editingTime && editingTime.day === day && editingTime.location === location;
