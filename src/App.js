@@ -257,7 +257,9 @@ const MasterScheduleSystem = () => {
   };
 
   // Base schedule data
-  const [baseSchedule, setBaseSchedule] = useState({
+  const [baseSchedule, setBaseSchedule] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_baseSchedule');
+    return saved ? JSON.parse(saved) : {
     1: {
       title: 'Week 1 - August 5-11',
       saturdayStaff: 'Kyle',
@@ -306,6 +308,7 @@ const MasterScheduleSystem = () => {
         Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
       }
     }
+  };
   });
 
   // Date functions
