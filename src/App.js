@@ -323,50 +323,48 @@ const MasterScheduleSystem = () => {
     'Safepoint': { start: '9:00a', end: '2:00p', duration: 5.0 }
   };
 
-  // Base schedule data
-  const [baseSchedule, setBaseSchedule] = useState(() => {
-    const saved = localStorage.getItem('safetySchedule_baseSchedule');
-    return saved ? JSON.parse(saved) : {
-    1: {
-      title: 'Week 1 - August 5-11',
-      saturdayStaff: 'Kyle',
-      assignments: {
+  // Generate schedule for a specific week
+  const generateWeekSchedule = (weekNum) => {
+    const dates = getWeekDates(weekNum);
+    const firstDate = dates[0];
+    const lastDate = dates[6];
+    const monthYear = getWeekMonthYear(weekNum);
+    
+    // Staff rotation pattern (4-week cycle)
+    const staffRotation = ['Kyle', 'Tyler', 'Mia', 'Kyle'];
+    const saturdayStaff = staffRotation[(weekNum - 1) % 4];
+    
+    // Base assignments pattern (rotates every 4 weeks)
+    const basePatterns = [
+      // Week 1 pattern
+      {
         Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
         Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
         Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
-      }
-    },
-    2: {
-      title: 'Week 2 - August 12-18',
-      saturdayStaff: 'Tyler',
-      assignments: {
+      },
+      // Week 2 pattern
+      {
         Monday: { 'Short North': 'Tyler', 'KL': 'Kyle', 'Safepoint': null },
         Tuesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Wednesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' },
         Friday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Mia' }
-      }
-    },
-    3: {
-      title: 'Week 3 - August 19-25',
-      saturdayStaff: 'Mia',
-      assignments: {
+      },
+      // Week 3 pattern
+      {
         Monday: { 'Short North': 'Mia', 'KL': 'Tyler', 'Safepoint': null },
         Tuesday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
         Wednesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Thursday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
         Friday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Tyler' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Mia', 'Safepoint': 'Kyle' }
-      }
-    },
-    4: {
-      title: 'Week 4 - August 26-September 1',
-      saturdayStaff: 'Kyle',
-      assignments: {
+      },
+      // Week 4 pattern
+      {
         Monday: { 'Short North': 'Kyle', 'KL': 'Mia', 'Safepoint': null },
         Tuesday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Wednesday: { 'Short North': 'Mike', 'KL': 'Tyler', 'Safepoint': 'Kyle' },
@@ -374,8 +372,32 @@ const MasterScheduleSystem = () => {
         Friday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Mia' },
         Saturday: { 'Short North': 'Mike', 'KL': 'Kyle', 'Safepoint': 'Tyler' }
       }
-    }
+    ];
+    
+    const patternIndex = (weekNum - 1) % 4;
+    const assignments = basePatterns[patternIndex];
+    
+    return {
+      title: `Week ${weekNum} - ${monthYear.month} ${formatDate(firstDate)}-${formatDate(lastDate)}`,
+      saturdayStaff,
+      assignments
+    };
   };
+
+  // Base schedule data with dynamic generation
+  const [baseSchedule, setBaseSchedule] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_baseSchedule');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    
+    // Generate initial schedule for first 4 weeks
+    const initialSchedule = {};
+    for (let week = 1; week <= 4; week++) {
+      initialSchedule[week] = generateWeekSchedule(week);
+    }
+    
+    return initialSchedule;
   });
 
   // Clean up corrupted data with undefined locations
@@ -411,11 +433,14 @@ const MasterScheduleSystem = () => {
   }, [baseSchedule]);
 
   // Date functions
+  // Dynamic week system supporting multiple months
+  const START_DATE = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
+  const TOTAL_WEEKS = 52; // Support up to 52 weeks (1 year)
+  
   const getWeekDates = (weekNum) => {
-    const startDate = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
     const targetWeek = weekNum - 1;
     
-    const monday = new Date(startDate);
+    const monday = new Date(START_DATE);
     monday.setDate(monday.getDate() + (targetWeek * 7));
     
     const dates = [];
@@ -436,13 +461,11 @@ const MasterScheduleSystem = () => {
   };
 
   // Function to get the current week number based on today's date
-  // eslint-disable-next-line no-unused-vars
   const getCurrentWeekNumber = () => {
     const today = new Date();
-    const startDate = new Date(2024, 7, 4); // August 4th, 2024
-    const diffTime = today.getTime() - startDate.getTime();
+    const diffTime = today.getTime() - START_DATE.getTime();
     const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
-    return Math.max(1, Math.min(4, diffWeeks + 1)); // Keep within 1-4 range
+    return Math.max(1, Math.min(TOTAL_WEEKS, diffWeeks + 1)); // Keep within 1-TOTAL_WEEKS range
   };
 
   const formatDate = (date) => {
@@ -792,11 +815,23 @@ const MasterScheduleSystem = () => {
     saveShiftChanges(day, location, currentWeek, changesToSave);
   };
 
-  const currentSchedule = baseSchedule[currentWeek] || {
-    title: `Week ${currentWeek}`,
-    saturdayStaff: 'Kyle',
-    assignments: {}
+  // Get current schedule for the selected week, generate if doesn't exist
+  const getCurrentSchedule = (weekNum) => {
+    if (!baseSchedule[weekNum]) {
+      // Generate the schedule for this week
+      const newSchedule = generateWeekSchedule(weekNum);
+      
+      // Update baseSchedule with the new week
+      const updatedBaseSchedule = { ...baseSchedule, [weekNum]: newSchedule };
+      setBaseSchedule(updatedBaseSchedule);
+      saveDataWithSync('safetySchedule_baseSchedule', updatedBaseSchedule);
+      
+      return newSchedule;
+    }
+    return baseSchedule[weekNum];
   };
+
+  const currentSchedule = getCurrentSchedule(currentWeek);
   const baseHours = calculateBaseHours(currentWeek);
   const currentMonthYear = getWeekMonthYear(currentWeek);
   const theme = darkMode ? 'dark' : '';
@@ -894,7 +929,7 @@ const MasterScheduleSystem = () => {
           {isAuthenticated && (
             <div className={`mt-3 p-3 rounded-lg ${darkMode ? 'bg-blue-900 bg-opacity-30 border border-blue-600' : 'bg-blue-50 border border-blue-200'}`}>
               <p className={`text-xs ${darkMode ? 'text-blue-100' : 'text-blue-800'}`}>
-                📅 <strong>Current Week:</strong> Week {currentWeek} of 4 • {currentMonthYear.month} {currentMonthYear.year} • 
+                📅 <strong>Current Week:</strong> Week {currentWeek} of {TOTAL_WEEKS} • {currentMonthYear.month} {currentMonthYear.year} • 
                 Schedule automatically progresses through months. The 4-week rotation repeats continuously.
               </p>
             </div>
@@ -1261,14 +1296,14 @@ const MasterScheduleSystem = () => {
                   ← Previous Week
                 </button>
                 <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  Week {currentWeek} of 4
+                  Week {currentWeek} of {TOTAL_WEEKS}
                 </span>
-                <button
-                  onClick={() => setCurrentWeek(Math.min(4, currentWeek + 1))}
-                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                >
-                  Next Week →
-                </button>
+                                  <button
+                    onClick={() => setCurrentWeek(Math.min(TOTAL_WEEKS, currentWeek + 1))}
+                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                  >
+                    Next Week →
+                  </button>
               </div>
               
               <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
