@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Clock, Settings, Edit3, Users, BarChart3, Upload, CalendarX, MapPin, Calendar } from 'lucide-react';
+import { Target, Clock, Settings, Users, BarChart3, Upload, CalendarX, MapPin, Calendar } from 'lucide-react';
 
 // ===== PASSWORD CONFIGURATION =====
 // Change these passwords here for easy access
@@ -24,7 +24,6 @@ const MasterScheduleSystem = () => {
     const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
     return Math.max(1, Math.min(4, diffWeeks + 1)); // Keep within 1-4 range
   });
-  const [editMode, setEditMode] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showPickupShifts, setShowPickupShifts] = useState(false);
   // eslint-disable-next-line no-unused-vars
@@ -80,6 +79,8 @@ const MasterScheduleSystem = () => {
   const [pendingChanges, setPendingChanges] = useState({});
   const [editingTime, setEditingTime] = useState(null); // { day, location, field: 'start' | 'end' }
   const [calendarEditingTime, setCalendarEditingTime] = useState(null); // Separate state for calendar editing
+  const [dragState, setDragState] = useState(null); // { staff, day, location, week }
+  const [dragOverState, setDragOverState] = useState(null); // { staff, day, location, week }
 
   // Force master view when calendar is open
   useEffect(() => {
@@ -127,6 +128,70 @@ const MasterScheduleSystem = () => {
       setCustomHours(updatedCustomHours);
       localStorage.setItem('safetySchedule_customHours', JSON.stringify(updatedCustomHours));
     }
+  };
+
+  // Drag and drop handlers for calendar staff swaps
+  const handleDragStart = (e, staff, day, location) => {
+    e.stopPropagation();
+    setDragState({ staff, day, location, week: currentWeek });
+    console.log('Drag started:', staff, day, location);
+  };
+
+  const handleDragOver = (e, staff, day, location) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverState({ staff, day, location, week: currentWeek });
+  };
+
+  const handleDrop = (e, targetStaff, targetDay, targetLocation) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!dragState) return;
+    
+    const { staff: sourceStaff, day: sourceDay, location: sourceLocation } = dragState;
+    
+    console.log('Drop:', sourceStaff, sourceDay, sourceLocation, '->', targetStaff, targetDay, targetLocation);
+    
+    // Perform the staff swap
+    const updatedBaseSchedule = { ...baseSchedule };
+    
+    // Remove source assignment
+    if (updatedBaseSchedule[currentWeek]?.assignments[sourceDay]?.[sourceLocation]) {
+      delete updatedBaseSchedule[currentWeek].assignments[sourceDay][sourceLocation];
+    }
+    
+    // Add target assignment
+    if (!updatedBaseSchedule[currentWeek]) {
+      updatedBaseSchedule[currentWeek] = { assignments: {} };
+    }
+    if (!updatedBaseSchedule[currentWeek].assignments[targetDay]) {
+      updatedBaseSchedule[currentWeek].assignments[targetDay] = {};
+    }
+    updatedBaseSchedule[currentWeek].assignments[targetDay][targetLocation] = sourceStaff;
+    
+    // If target had a staff member, swap them to the source location
+    if (targetStaff && targetStaff !== 'No Shift') {
+      if (!updatedBaseSchedule[currentWeek].assignments[sourceDay]) {
+        updatedBaseSchedule[currentWeek].assignments[sourceDay] = {};
+      }
+      updatedBaseSchedule[currentWeek].assignments[sourceDay][sourceLocation] = targetStaff;
+    }
+    
+    setBaseSchedule(updatedBaseSchedule);
+    localStorage.setItem('safetySchedule_baseSchedule', JSON.stringify(updatedBaseSchedule));
+    
+    // Clear drag states
+    setDragState(null);
+    setDragOverState(null);
+    
+    console.log('Staff swap completed');
+  };
+
+  const handleDragEnd = (e) => {
+    e.stopPropagation();
+    setDragState(null);
+    setDragOverState(null);
   };
 
   // Staff information
@@ -730,15 +795,7 @@ const MasterScheduleSystem = () => {
           {/* Master-only controls */}
           {isAuthenticated && (
             <>
-              <button
-                onClick={() => setEditMode(!editMode)}
-                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
-                  editMode ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Edit3 className="w-3 h-3 lg:w-4 lg:h-4" />
-                {editMode ? 'Exit Edit' : 'Edit Schedule'}
-              </button>
+
 
               <button
                 onClick={() => handleViewModeChange(viewMode === 'master' ? 'individual' : 'master')}
@@ -1071,6 +1128,9 @@ const MasterScheduleSystem = () => {
             <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               <Calendar className="w-5 h-5" />
               Full Calendar View
+              <span className="text-sm bg-blue-500 text-white px-2 py-1 rounded-full">
+                🎯 Drag & Drop Staff Swaps
+              </span>
             </h3>
             
             {/* Calendar Navigation */}
@@ -1156,11 +1216,23 @@ const MasterScheduleSystem = () => {
                         return (
                           <div 
                             key={dayIndex} 
-                            className={`p-3 rounded-lg border ${
+                            draggable={location && !isOff}
+                            onDragStart={(e) => handleDragStart(e, staff, day, location)}
+                            onDragOver={(e) => handleDragOver(e, staff, day, location)}
+                            onDrop={(e) => handleDrop(e, staff, day, location)}
+                            onDragEnd={handleDragEnd}
+                            className={`p-3 rounded-lg border transition-all duration-200 ${
                               isOff ? 'bg-red-100 border-red-300' :
                               location ? `${staffInfo[staff].color} text-white` :
                               darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-200'
+                            } ${
+                              dragState && dragState.staff === staff && dragState.day === day && dragState.location === location
+                                ? 'opacity-50 scale-95' : ''
+                            } ${
+                              dragOverState && dragOverState.staff === staff && dragOverState.day === day && dragOverState.location === location
+                                ? 'ring-2 ring-yellow-400 ring-opacity-75 scale-105' : ''
                             }`}
+                            title={location && !isOff ? `Drag ${staff} to swap with another staff member` : ''}
                             onClick={(e) => {
                               // Prevent navigation when clicking on calendar cells
                               e.stopPropagation();
@@ -1920,11 +1992,6 @@ const MasterScheduleSystem = () => {
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
               <Clock className="w-6 h-6" />
               {viewMode === 'master' ? `${currentSchedule.title} - Base Schedule` : `${selectedStaffView}'s Schedule - Week ${currentWeek}`}
-              {editMode && (
-                <span className="text-sm bg-white bg-opacity-25 px-2 py-1 rounded-full">
-                  Edit Mode
-                </span>
-              )}
             </h2>
           </div>
 
@@ -2313,106 +2380,8 @@ const MasterScheduleSystem = () => {
                                 )}
                               </div>
                               
-                              {editMode && (
-                                <div className="space-y-2">
-                                  <select
-                                    value={assignment || ''}
-                                    onChange={(e) => assignBaseShift(day, location, e.target.value || null)}
-                                    className="w-full p-1 text-sm bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
-                                  >
-                                    <option value="">Make Pickup Shift</option>
-                                    <option value={assignment}>{assignment} (current)</option>
-                                    {getAvailableStaff(day, currentWeek).filter(staff => 
-                                      staff !== assignment
-                                    ).map(staff => (
-                                      <option key={staff} value={staff}>{staff}</option>
-                                    ))}
-                                  </select>
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <label className="text-xs text-white opacity-75">Start:</label>
-                                      <input
-                                        type="text"
-                                        placeholder="7:30a"
-                                        value={hasPendingChanges(day, location, currentWeek) ? 
-                                          (pendingChanges[`${currentWeek}-${day}-${location}`]?.time?.start || getCustomShiftTime(day, location, currentWeek)?.start || '') :
-                                          (getCustomShiftTime(day, location, currentWeek)?.start || '')
-                                        }
-                                        onChange={(e) => {
-                                          console.log('Start time changed:', e.target.value, 'Length:', e.target.value.length, 'Char codes:', [...e.target.value].map(c => c.charCodeAt(0)));
-                                          const currentTime = getCustomShiftTime(day, location, currentWeek) || { start: '', end: '' };
-                                          const newTime = { ...currentTime, start: e.target.value };
-                                          console.log('New time object:', newTime);
-                                          
-                                          // Store as pending change for display
-                                          const changeKey = `${currentWeek}-${day}-${location}`;
-                                          setPendingChanges(prev => ({
-                                            ...prev,
-                                            [changeKey]: { ...prev[changeKey], time: newTime }
-                                          }));
-                                          
-                                          // Auto-save immediately with the changes
-                                          const changesToSave = { time: newTime };
-                                          if (newTime.start && newTime.end) {
-                                            const calculatedHours = calculateHoursFromTimes(newTime.start, newTime.end);
-                                            changesToSave.duration = calculatedHours;
-                                          }
-                                          saveShiftChanges(day, location, currentWeek, changesToSave);
-                                        }}
-                                        className="w-20 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
-                                      />
-                                      <label className="text-xs text-white opacity-75">End:</label>
-                                      <input
-                                        type="text"
-                                        placeholder="7:30p"
-                                        value={hasPendingChanges(day, location, currentWeek) ? 
-                                          (pendingChanges[`${currentWeek}-${day}-${location}`]?.time?.end || getCustomShiftTime(day, location, currentWeek)?.end || '') :
-                                          (getCustomShiftTime(day, location, currentWeek)?.end || '')
-                                        }
-                                        onChange={(e) => {
-                                          console.log('End time changed:', e.target.value, 'Length:', e.target.value.length, 'Char codes:', [...e.target.value].map(c => c.charCodeAt(0)));
-                                          const currentTime = getCustomShiftTime(day, location, currentWeek) || { start: '', end: '' };
-                                          const newTime = { ...currentTime, end: e.target.value };
-                                          console.log('New time object:', newTime);
-                                          
-                                          // Store as pending change for display
-                                          const changeKey = `${currentWeek}-${day}-${location}`;
-                                          setPendingChanges(prev => ({
-                                            ...prev,
-                                            [changeKey]: { ...prev[changeKey], time: newTime }
-                                          }));
-                                          
-                                          // Auto-save immediately with the changes
-                                          const changesToSave = { time: newTime };
-                                          if (newTime.start && newTime.end) {
-                                            const calculatedHours = calculateHoursFromTimes(newTime.start, newTime.end);
-                                            changesToSave.duration = calculatedHours;
-                                          }
-                                          saveShiftChanges(day, location, currentWeek, changesToSave);
-                                        }}
-                                        className="w-20 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
-                                      />
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs text-white opacity-75">
-                                        Hours: {(() => {
-                                          if (hasPendingChanges(day, location, currentWeek)) {
-                                            const pending = pendingChanges[`${currentWeek}-${day}-${location}`];
-                                            if (pending?.time?.start && pending?.time?.end) {
-                                              const calculatedHours = calculateHoursFromTimes(pending.time.start, pending.time.end);
-                                              return isNaN(calculatedHours) ? '0' : calculatedHours;
-                                            }
-                                            return pending?.duration || 0;
-                                          }
-                                          return customDuration;
-                                        })()}h
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {!editMode && (
-                                <div>
+
+                                                              <div>
                                   {assignment && (
                                     <div className="font-semibold flex items-center justify-between">
                                       <strong>{assignment}</strong>
@@ -2493,83 +2462,6 @@ const MasterScheduleSystem = () => {
                                     })()}
                                   </div>
                                 </div>
-                              )}
-                              {editMode && (
-                                <div className="text-xs opacity-75 flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {(() => {
-                                    const customTime = getCustomShiftTime(day, location, currentWeek);
-                                    const isEditing = editingTime && editingTime.day === day && editingTime.location === location;
-                                    
-                                    if (isEditing && editingTime.field === 'start') {
-                                      return (
-                                        <input
-                                          type="text"
-                                          placeholder="7:30a"
-                                          value={customTime?.start || shiftHours.start}
-                                          onChange={(e) => handleInlineTimeEdit(day, location, 'start', e.target.value)}
-                                          onBlur={() => setEditingTime(null)}
-                                          onKeyPress={(e) => {
-                                            if (e.key === 'Enter') {
-                                              setEditingTime(null);
-                                            }
-                                          }}
-                                          className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
-                                          autoFocus
-                                        />
-                                      );
-                                    } else if (isEditing && editingTime.field === 'end') {
-                                      return (
-                                        <span>
-                                          {customTime?.start || shiftHours.start} - 
-                                          <input
-                                            type="text"
-                                            placeholder="7:30p"
-                                            value={customTime?.end || shiftHours.end}
-                                            onChange={(e) => handleInlineTimeEdit(day, location, 'end', e.target.value)}
-                                            onBlur={() => setEditingTime(null)}
-                                            onKeyPress={(e) => {
-                                              if (e.key === 'Enter') {
-                                                setEditingTime(null);
-                                              }
-                                            }}
-                                            className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold ml-1"
-                                            autoFocus
-                                          />
-                                          ({customDuration}h)
-                                        </span>
-                                      );
-                                    } else {
-                                      return (
-                                        <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded">
-                                          <span 
-                                            onClick={() => {
-                                              console.log('Start time clicked (edit mode):', day, location);
-                                              setEditingTime({ day, location, field: 'start' });
-                                            }}
-                                            className="hover:underline"
-                                            title="Click to edit start time"
-                                          >
-                                            {customTime?.start || shiftHours.start}
-                                          </span>
-                                          {' - '}
-                                          <span 
-                                            onClick={() => {
-                                              console.log('End time clicked (edit mode):', day, location);
-                                              setEditingTime({ day, location, field: 'end' });
-                                            }}
-                                            className="hover:underline"
-                                            title="Click to edit end time"
-                                          >
-                                            {customTime?.end || shiftHours.end}
-                                          </span>
-                                          {' ('}{customDuration}h)
-                                        </span>
-                                      );
-                                    }
-                                  })()}
-                                </div>
-                              )}
                             </div>
                           );
                         })}
