@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, Clock, Settings, Edit3, Users, BarChart3, Upload, CalendarX, MapPin } from 'lucide-react';
+import { Target, Clock, Settings, Edit3, Users, BarChart3, Upload, CalendarX, MapPin, Calendar } from 'lucide-react';
 
 // ===== PASSWORD CONFIGURATION =====
 // Change these passwords here for easy access
@@ -66,6 +66,7 @@ const MasterScheduleSystem = () => {
   const [loggedInStaff, setLoggedInStaff] = useState(null);
   const [showRoster, setShowRoster] = useState(false);
   const [showSites, setShowSites] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [newOfficer, setNewOfficer] = useState({ name: '', password: '', color: 'bg-blue-500' });
   const [newSite, setNewSite] = useState({ 
     name: '', 
@@ -727,6 +728,16 @@ const MasterScheduleSystem = () => {
                 <MapPin className="w-3 h-3 lg:w-4 lg:h-4" />
                 Sites
               </button>
+
+              <button
+                onClick={() => setShowCalendar(!showCalendar)}
+                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
+                  showCalendar ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Calendar className="w-3 h-3 lg:w-4 lg:h-4" />
+                Calendar
+              </button>
             </>
           )}
 
@@ -964,6 +975,169 @@ const MasterScheduleSystem = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Calendar View Panel */}
+        {showCalendar && isAuthenticated && (
+          <div className={`mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <Calendar className="w-5 h-5" />
+              Full Calendar View
+            </h3>
+            
+            {/* Calendar Navigation */}
+            <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setCurrentWeek(Math.max(1, currentWeek - 1))}
+                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                >
+                  ← Previous Week
+                </button>
+                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Week {currentWeek} of 4
+                </span>
+                <button
+                  onClick={() => setCurrentWeek(Math.min(4, currentWeek + 1))}
+                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                >
+                  Next Week →
+                </button>
+              </div>
+              
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                {currentMonthYear.month} {currentMonthYear.year}
+              </div>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="overflow-x-auto">
+              <div className="min-w-full">
+                {/* Header Row */}
+                <div className="grid grid-cols-8 gap-2 mb-2">
+                  <div className={`p-2 font-semibold text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Day
+                  </div>
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                    <div key={day} className={`p-2 font-semibold text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Date Row */}
+                <div className="grid grid-cols-8 gap-2 mb-4">
+                  <div className={`p-2 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Date
+                  </div>
+                  {getWeekDates(currentWeek).map((date, index) => (
+                    <div key={index} className={`p-2 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {formatDate(date)}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Staff Rows */}
+                {['Kyle', 'Mia', 'Tyler', 'Mike'].map(staff => (
+                  <div key={staff} className="grid grid-cols-8 gap-2 mb-4">
+                    <div className={`p-3 font-semibold ${staffInfo[staff].textColor} rounded-lg`}>
+                      {staff}
+                    </div>
+                                         {days.map((day, dayIndex) => {
+                       const weekDates = getWeekDates(currentWeek);
+                       const date = weekDates[dayIndex];
+                       // eslint-disable-next-line no-unused-vars
+                       const dateKey = date.toISOString().split('T')[0];
+                       const isOff = isStaffOff(staff, day, currentWeek);
+                      
+                      // Get staff's assignment for this day
+                      const location = currentSchedule[day] ? 
+                        Object.keys(currentSchedule[day]).find(loc => currentSchedule[day][loc] === staff) : null;
+                      
+                      const shiftDuration = location ? getShiftDuration(day, location, currentWeek) : 0;
+                      const customTime = location ? getCustomShiftTime(day, location, currentWeek) : null;
+                      const operatingHours = location ? getOperatingHours(location, day) : null;
+                      
+                      return (
+                        <div key={dayIndex} className={`p-3 rounded-lg border ${
+                          isOff ? 'bg-red-100 border-red-300' :
+                          location ? `${staffInfo[staff].color} text-white` :
+                          darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-200'
+                        }`}>
+                          {isOff ? (
+                            <div className="text-center">
+                              <div className="text-xs font-semibold text-red-600">OFF</div>
+                              <div className="text-xs text-red-500">Requested</div>
+                            </div>
+                          ) : location ? (
+                            <div className="text-center">
+                              <div className="text-xs font-semibold">{location}</div>
+                              <div className="text-xs opacity-80">
+                                {customTime ? `${customTime.start}-${customTime.end}` : 
+                                 operatingHours ? `${operatingHours.start}-${operatingHours.end}` : ''}
+                              </div>
+                              <div className="text-xs opacity-80">{shiftDuration}h</div>
+                            </div>
+                          ) : (
+                            <div className="text-center text-xs opacity-50">No Shift</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+
+                {/* Daily Totals Row */}
+                <div className="grid grid-cols-8 gap-2 mb-4">
+                  <div className={`p-3 font-semibold text-center ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Daily Total
+                  </div>
+                                     {days.map((day, dayIndex) => {
+                     const weekDates = getWeekDates(currentWeek);
+                     const date = weekDates[dayIndex];
+                     // eslint-disable-next-line no-unused-vars
+                     const dateKey = date.toISOString().split('T')[0];
+                    
+                    // Calculate total hours for this day
+                    let totalHours = 0;
+                    Object.keys(currentSchedule[day] || {}).forEach(location => {
+                      const staff = currentSchedule[day][location];
+                      if (staff && !isStaffOff(staff, day, currentWeek)) {
+                        totalHours += getShiftDuration(day, location, currentWeek);
+                      }
+                    });
+                    
+                    return (
+                      <div key={dayIndex} className={`p-3 text-center font-semibold rounded-lg ${
+                        darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-800'
+                      }`}>
+                        {totalHours}h
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Weekly Totals Row */}
+                <div className="grid grid-cols-8 gap-2">
+                  <div className={`p-3 font-semibold text-center ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Weekly Total
+                  </div>
+                  {['Kyle', 'Mia', 'Tyler', 'Mike'].map(staff => {
+                    const weeklyHours = calculateBaseHours(currentWeek)[staff];
+                    return (
+                      <div key={staff} className={`p-3 text-center font-semibold rounded-lg ${
+                        weeklyHours >= 40 ? 'bg-green-200 text-green-800' :
+                        weeklyHours >= 30 ? 'bg-yellow-200 text-yellow-800' :
+                        darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-800'
+                      }`}>
+                        {weeklyHours}h
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
