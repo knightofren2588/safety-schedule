@@ -330,6 +330,48 @@ const MasterScheduleSystem = () => {
     'Safepoint': { start: '9:00a', end: '2:00p', duration: 5.0 }
   };
 
+  // Date functions (moved before generateWeekSchedule to avoid circular dependencies)
+  const START_DATE = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
+  const TOTAL_WEEKS = 52; // Support up to 52 weeks (1 year)
+  
+  const getWeekDates = (weekNum) => {
+    try {
+      const targetWeek = weekNum - 1;
+      
+      const monday = new Date(START_DATE);
+      monday.setDate(monday.getDate() + (targetWeek * 7));
+      
+      const dates = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        dates.push(date);
+      }
+      
+      return dates;
+    } catch (error) {
+      console.error('Error getting week dates:', error);
+      // Return fallback dates
+      const fallbackDates = [];
+      for (let i = 0; i < 7; i++) {
+        fallbackDates.push(new Date(2024, 7, 4 + i));
+      }
+      return fallbackDates;
+    }
+  };
+
+  const getWeekMonthYear = (weekNum) => {
+    const dates = getWeekDates(weekNum);
+    const firstDate = dates[0];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return { month: months[firstDate.getMonth()], year: firstDate.getFullYear() };
+  };
+
+  const formatDate = (date) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[date.getMonth()]} ${date.getDate()}`;
+  };
+
   // Generate schedule for a specific week
   const generateWeekSchedule = useCallback((weekNum) => {
     try {
@@ -398,7 +440,7 @@ const MasterScheduleSystem = () => {
         assignments: {}
       };
     }
-  }, [getWeekDates, getWeekMonthYear, formatDate]);
+  }, []);
 
   // Base schedule data with dynamic generation
   const [baseSchedule, setBaseSchedule] = useState(() => {
@@ -463,55 +505,12 @@ const MasterScheduleSystem = () => {
     }
   }, [currentWeek, baseSchedule, generateWeekSchedule]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Date functions
-  // Dynamic week system supporting multiple months
-  const START_DATE = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
-  const TOTAL_WEEKS = 52; // Support up to 52 weeks (1 year)
-  
-  const getWeekDates = (weekNum) => {
-    try {
-      const targetWeek = weekNum - 1;
-      
-      const monday = new Date(START_DATE);
-      monday.setDate(monday.getDate() + (targetWeek * 7));
-      
-      const dates = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        dates.push(date);
-      }
-      
-      return dates;
-    } catch (error) {
-      console.error('Error getting week dates:', error);
-      // Return fallback dates
-      const fallbackDates = [];
-      for (let i = 0; i < 7; i++) {
-        fallbackDates.push(new Date(2024, 7, 4 + i));
-      }
-      return fallbackDates;
-    }
-  };
-
-  const getWeekMonthYear = (weekNum) => {
-    const dates = getWeekDates(weekNum);
-    const firstDate = dates[0];
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    return { month: months[firstDate.getMonth()], year: firstDate.getFullYear() };
-  };
-
   // Function to get the current week number based on today's date
   const getCurrentWeekNumber = () => {
     const today = new Date();
     const diffTime = today.getTime() - START_DATE.getTime();
     const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
     return Math.max(1, Math.min(TOTAL_WEEKS, diffWeeks + 1)); // Keep within 1-TOTAL_WEEKS range
-  };
-
-  const formatDate = (date) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[date.getMonth()]} ${date.getDate()}`;
   };
 
   // Authentication functions
