@@ -2114,8 +2114,7 @@ const MasterScheduleSystem = () => {
                                     <option value="">Make Pickup Shift</option>
                                     <option value={assignment}>{assignment} (current)</option>
                                     {getAvailableStaff(day, currentWeek).filter(staff => 
-                                      staff !== assignment && 
-                                      !(staff === 'Mike' && day === 'Monday')
+                                      staff !== assignment
                                     ).map(staff => (
                                       <option key={staff} value={staff}>{staff}</option>
                                     ))}
