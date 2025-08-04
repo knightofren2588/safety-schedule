@@ -1105,8 +1105,77 @@ const MasterScheduleSystem = () => {
                               <div className="text-center">
                                 <div className="text-xs font-semibold">{location}</div>
                                                               <div className="text-xs opacity-90">
-                                {customTime ? `${customTime.start}-${customTime.end}` : 
-                                 operatingHours ? `${operatingHours.start}-${operatingHours.end}` : ''}
+                                {(() => {
+                                  const isEditing = editingTime && editingTime.day === day && editingTime.location === location;
+                                  const timeText = customTime ? `${customTime.start}-${customTime.end}` : 
+                                                 operatingHours ? `${operatingHours.start}-${operatingHours.end}` : '';
+                                  
+                                  if (isEditing && editingTime.field === 'start') {
+                                    return (
+                                      <input
+                                        type="text"
+                                        placeholder="7:30a"
+                                        value={customTime?.start || operatingHours?.start || ''}
+                                        onChange={(e) => handleInlineTimeEdit(day, location, 'start', e.target.value)}
+                                        onBlur={() => setEditingTime(null)}
+                                        onKeyPress={(e) => {
+                                          if (e.key === 'Enter') {
+                                            setEditingTime(null);
+                                          }
+                                        }}
+                                        className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
+                                        autoFocus
+                                      />
+                                    );
+                                  } else if (isEditing && editingTime.field === 'end') {
+                                    return (
+                                      <span>
+                                        {customTime?.start || operatingHours?.start || ''} - 
+                                        <input
+                                          type="text"
+                                          placeholder="7:30p"
+                                          value={customTime?.end || operatingHours?.end || ''}
+                                          onChange={(e) => handleInlineTimeEdit(day, location, 'end', e.target.value)}
+                                          onBlur={() => setEditingTime(null)}
+                                          onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                              setEditingTime(null);
+                                            }
+                                          }}
+                                          className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold ml-1"
+                                          autoFocus
+                                        />
+                                      </span>
+                                    );
+                                  } else {
+                                    const [startTime, endTime] = timeText.split('-');
+                                    return (
+                                      <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded">
+                                        <span 
+                                          onClick={() => {
+                                            console.log('Calendar start time clicked:', day, location);
+                                            setEditingTime({ day, location, field: 'start' });
+                                          }}
+                                          className="hover:underline"
+                                          title="Click to edit start time"
+                                        >
+                                          {startTime}
+                                        </span>
+                                        {' - '}
+                                        <span 
+                                          onClick={() => {
+                                            console.log('Calendar end time clicked:', day, location);
+                                            setEditingTime({ day, location, field: 'end' });
+                                          }}
+                                          className="hover:underline"
+                                          title="Click to edit end time"
+                                        >
+                                          {endTime}
+                                        </span>
+                                      </span>
+                                    );
+                                  }
+                                })()}
                               </div>
                               <div className="text-xs opacity-90">{shiftDuration}h</div>
                               </div>
