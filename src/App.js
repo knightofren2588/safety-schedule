@@ -90,6 +90,8 @@ const MasterScheduleSystem = () => {
     }
   }, [showCalendar, viewMode]);
 
+
+
   // Prevent view mode changes when calendar is open
   const handleViewModeChange = (newMode) => {
     if (showCalendar) {
@@ -324,6 +326,38 @@ const MasterScheduleSystem = () => {
     }
   };
   });
+
+  // Clean up corrupted data with undefined locations
+  useEffect(() => {
+    const cleanupCorruptedData = () => {
+      const updatedBaseSchedule = { ...baseSchedule };
+      let hasChanges = false;
+      
+      Object.keys(updatedBaseSchedule).forEach(weekNum => {
+        if (updatedBaseSchedule[weekNum]?.assignments) {
+          Object.keys(updatedBaseSchedule[weekNum].assignments).forEach(day => {
+            if (updatedBaseSchedule[weekNum].assignments[day]) {
+              Object.keys(updatedBaseSchedule[weekNum].assignments[day]).forEach(location => {
+                if (location === 'undefined' || location === undefined) {
+                  console.log('Removing corrupted assignment:', weekNum, day, location);
+                  delete updatedBaseSchedule[weekNum].assignments[day][location];
+                  hasChanges = true;
+                }
+              });
+            }
+          });
+        }
+      });
+      
+      if (hasChanges) {
+        console.log('Cleaning up corrupted data...');
+        setBaseSchedule(updatedBaseSchedule);
+        localStorage.setItem('safetySchedule_baseSchedule', JSON.stringify(updatedBaseSchedule));
+      }
+    };
+    
+    cleanupCorruptedData();
+  }, [baseSchedule]);
 
   // Date functions
   const getWeekDates = (weekNum) => {
@@ -1239,6 +1273,7 @@ const MasterScheduleSystem = () => {
                         // Get staff's assignment for this day
                         const location = baseSchedule[currentWeek]?.assignments[day] ? 
                           Object.keys(baseSchedule[currentWeek].assignments[day]).find(loc => 
+                            loc !== 'undefined' && loc !== undefined && 
                             baseSchedule[currentWeek].assignments[day][loc] === staff
                           ) : null;
                         
@@ -2388,7 +2423,8 @@ const MasterScheduleSystem = () => {
                     
                       <div className="p-4 space-y-3">
                         {locations.filter(location => !(day === 'Monday' && location === 'Safepoint')).map((location) => {
-                          const assignment = currentSchedule?.assignments?.[day]?.[location];
+                          const assignment = currentSchedule?.assignments?.[day]?.[location] || 
+                          (location && location !== 'undefined' ? currentSchedule?.assignments?.[day]?.[location] : null);
                           const isOpen = !assignment;
                           const shiftHours = day === 'Saturday' ? saturdayHours[location] : baseShiftHours[location];
                           const customDuration = getShiftDuration(day, location, currentWeek);
