@@ -195,15 +195,20 @@ const MasterScheduleSystem = () => {
   };
 
   // Staff information
-  const [staffInfo, setStaffInfo] = useState({
+  const [staffInfo, setStaffInfo] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_staffInfo');
+    return saved ? JSON.parse(saved) : {
     Kyle: { color: 'bg-blue-500', textColor: 'bg-blue-500 text-white' },
     Mia: { color: 'bg-purple-500', textColor: 'bg-purple-500 text-white' },
     Tyler: { color: 'bg-green-500', textColor: 'bg-green-500 text-white' },
     Mike: { color: 'bg-orange-500', textColor: 'bg-orange-500 text-white' }
+  };
   });
 
   // Sites information
-  const [sites, setSites] = useState({
+  const [sites, setSites] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_sites');
+    return saved ? JSON.parse(saved) : {
     'Short North': {
       address: '123 Short North Ave, Columbus, OH 43215',
       startTime: '11:00a',
@@ -231,6 +236,7 @@ const MasterScheduleSystem = () => {
       closedDays: ['Sunday', 'Monday'],
       icon: '🛡️'
     }
+  };
   });
 
   // Location icons (for backward compatibility)
