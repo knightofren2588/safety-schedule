@@ -511,14 +511,16 @@ const MasterScheduleSystem = () => {
       if (!baseSchedule[currentWeek]) {
         console.log('Generating schedule for week:', currentWeek);
         const newSchedule = generateWeekSchedule(currentWeek);
-        const updatedBaseSchedule = { ...baseSchedule, [currentWeek]: newSchedule };
-        setBaseSchedule(updatedBaseSchedule);
-        saveDataWithSync('safetySchedule_baseSchedule', updatedBaseSchedule);
+        setBaseSchedule(prev => {
+          const updated = { ...prev, [currentWeek]: newSchedule };
+          saveDataWithSync('safetySchedule_baseSchedule', updated);
+          return updated;
+        });
       }
     } catch (error) {
       console.error('Error generating missing week:', error);
     }
-  }, [currentWeek]); // Simplified dependencies to prevent infinite loops
+  }, [currentWeek]); // Only depend on currentWeek to prevent infinite loops
 
   // Function to get the current week number based on today's date
   const getCurrentWeekNumber = () => {
@@ -1442,16 +1444,65 @@ const MasterScheduleSystem = () => {
                 <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                   Week {currentWeek} of {TOTAL_WEEKS}
                 </span>
-                                  <button
-                    onClick={() => setCurrentWeek(Math.min(TOTAL_WEEKS, currentWeek + 1))}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                  >
-                    Next Week →
-                  </button>
+                <button
+                  onClick={() => setCurrentWeek(Math.min(TOTAL_WEEKS, currentWeek + 1))}
+                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                >
+                  Next Week →
+                </button>
               </div>
               
-              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                {currentMonthYear.month} {currentMonthYear.year}
+              <div className="flex items-center gap-2">
+                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {currentMonthYear.month} {currentMonthYear.year}
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => {
+                      // Jump to August 2024 (weeks 1-4)
+                      setCurrentWeek(1);
+                    }}
+                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 1 && currentWeek <= 4 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Aug
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Jump to September 2024 (weeks 5-8)
+                      setCurrentWeek(5);
+                    }}
+                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 5 && currentWeek <= 8 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Sep
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Jump to October 2024 (weeks 9-13)
+                      setCurrentWeek(9);
+                    }}
+                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 9 && currentWeek <= 13 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Oct
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Jump to November 2024 (weeks 14-17)
+                      setCurrentWeek(14);
+                    }}
+                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 14 && currentWeek <= 17 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Nov
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Jump to December 2024 (weeks 18-22)
+                      setCurrentWeek(18);
+                    }}
+                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 18 && currentWeek <= 22 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Dec
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1541,12 +1592,12 @@ const MasterScheduleSystem = () => {
                               dragOverState && dragOverState.staff === staff && dragOverState.day === day && dragOverState.location === location
                                 ? 'ring-2 ring-yellow-400 ring-opacity-75 scale-105' : ''
                             } ${
-                              dragState && !isOff && location ? 'cursor-grab active:cursor-grabbing' : ''
+                              location && !isOff ? 'cursor-grab active:cursor-grabbing hover:shadow-md' : ''
                             }`}
                             title={location && !isOff ? `Drag ${staff} to swap with another staff member` : ''}
                             onClick={(e) => {
-                              // Only handle clicks if not dragging
-                              if (!dragState) {
+                              // Only handle clicks if not dragging and not on a draggable element
+                              if (!dragState && (!location || isOff)) {
                                 e.stopPropagation();
                                 console.log('Calendar cell clicked:', day, location, staff);
                               }
