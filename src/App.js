@@ -1062,7 +1062,7 @@ const MasterScheduleSystem = () => {
                   ))}
                 </div>
 
-                                {/* Staff Rows */}
+                {/* Staff Rows */}
                 {['Kyle', 'Mia', 'Tyler', 'Mike'].map(staff => {
                   const weeklyHours = calculateBaseHours(currentWeek)[staff];
                   return (
@@ -1112,39 +1112,19 @@ const MasterScheduleSystem = () => {
                             ) : location ? (
                               <div className="text-center">
                                 <div className="text-xs font-semibold">{location}</div>
-                                                              <div className="text-xs opacity-90">
-                                {(() => {
-                                  const isEditing = editingTime && editingTime.day === day && editingTime.location === location;
-                                  const timeText = customTime ? `${customTime.start}-${customTime.end}` : 
-                                                 operatingHours ? `${operatingHours.start}-${operatingHours.end}` : '';
-                                  
-                                  if (isEditing && editingTime.field === 'start') {
-                                    return (
-                                      <input
-                                        type="text"
-                                        placeholder="7:30a"
-                                        value={customTime?.start || operatingHours?.start || ''}
-                                        onChange={(e) => handleInlineTimeEdit(day, location, 'start', e.target.value)}
-                                        onBlur={() => setEditingTime(null)}
-                                        onKeyPress={(e) => {
-                                          if (e.key === 'Enter') {
-                                            setEditingTime(null);
-                                          }
-                                        }}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
-                                        autoFocus
-                                      />
-                                    );
-                                  } else if (isEditing && editingTime.field === 'end') {
-                                    return (
-                                      <span>
-                                        {customTime?.start || operatingHours?.start || ''} - 
+                                <div className="text-xs opacity-90">
+                                  {(() => {
+                                    const isEditing = editingTime && editingTime.day === day && editingTime.location === location;
+                                    const timeText = customTime ? `${customTime.start}-${customTime.end}` : 
+                                                   operatingHours ? `${operatingHours.start}-${operatingHours.end}` : '';
+                                    
+                                    if (isEditing && editingTime.field === 'start') {
+                                      return (
                                         <input
                                           type="text"
-                                          placeholder="7:30p"
-                                          value={customTime?.end || operatingHours?.end || ''}
-                                          onChange={(e) => handleInlineTimeEdit(day, location, 'end', e.target.value)}
+                                          placeholder="7:30a"
+                                          value={customTime?.start || operatingHours?.start || ''}
+                                          onChange={(e) => handleInlineTimeEdit(day, location, 'start', e.target.value)}
                                           onBlur={() => setEditingTime(null)}
                                           onKeyPress={(e) => {
                                             if (e.key === 'Enter') {
@@ -1152,79 +1132,99 @@ const MasterScheduleSystem = () => {
                                             }
                                           }}
                                           onClick={(e) => e.stopPropagation()}
-                                          className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold ml-1"
+                                          className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold"
                                           autoFocus
                                         />
-                                      </span>
-                                    );
-                                  } else {
-                                    console.log('Calendar time display:', day, location, timeText);
-                                    
-                                    // If timeText is empty or doesn't contain a dash, show default times
-                                    if (!timeText || !timeText.includes('-')) {
-                                      const defaultStart = operatingHours?.start || '7:30a';
-                                      const defaultEnd = operatingHours?.end || '7:30p';
+                                      );
+                                    } else if (isEditing && editingTime.field === 'end') {
+                                      return (
+                                        <span>
+                                          {customTime?.start || operatingHours?.start || ''} - 
+                                          <input
+                                            type="text"
+                                            placeholder="7:30p"
+                                            value={customTime?.end || operatingHours?.end || ''}
+                                            onChange={(e) => handleInlineTimeEdit(day, location, 'end', e.target.value)}
+                                            onBlur={() => setEditingTime(null)}
+                                            onKeyPress={(e) => {
+                                              if (e.key === 'Enter') {
+                                                setEditingTime(null);
+                                              }
+                                            }}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="w-16 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold ml-1"
+                                            autoFocus
+                                          />
+                                        </span>
+                                      );
+                                    } else {
+                                      console.log('Calendar time display:', day, location, timeText);
+                                      
+                                      // If timeText is empty or doesn't contain a dash, show default times
+                                      if (!timeText || !timeText.includes('-')) {
+                                        const defaultStart = operatingHours?.start || '7:30a';
+                                        const defaultEnd = operatingHours?.end || '7:30p';
+                                        return (
+                                          <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded border border-dashed border-white border-opacity-50">
+                                            <span 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                console.log('Calendar start time clicked (default):', day, location);
+                                                setEditingTime({ day, location, field: 'start' });
+                                              }}
+                                              className="hover:underline"
+                                              title="Click to edit start time"
+                                            >
+                                              {defaultStart}
+                                            </span>
+                                            {' - '}
+                                            <span 
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                console.log('Calendar end time clicked (default):', day, location);
+                                                setEditingTime({ day, location, field: 'end' });
+                                              }}
+                                              className="hover:underline"
+                                              title="Click to edit end time"
+                                            >
+                                              {defaultEnd}
+                                            </span>
+                                          </span>
+                                        );
+                                      }
+                                      
+                                      const [startTime, endTime] = timeText.split('-');
                                       return (
                                         <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded border border-dashed border-white border-opacity-50">
                                           <span 
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              console.log('Calendar start time clicked (default):', day, location);
+                                              console.log('Calendar start time clicked:', day, location);
                                               setEditingTime({ day, location, field: 'start' });
                                             }}
                                             className="hover:underline"
                                             title="Click to edit start time"
                                           >
-                                            {defaultStart}
+                                            {startTime || 'Click to set'}
                                           </span>
                                           {' - '}
                                           <span 
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              console.log('Calendar end time clicked (default):', day, location);
+                                              console.log('Calendar end time clicked:', day, location);
                                               setEditingTime({ day, location, field: 'end' });
                                             }}
                                             className="hover:underline"
                                             title="Click to edit end time"
                                           >
-                                            {defaultEnd}
+                                            {endTime || 'Click to set'}
                                           </span>
                                         </span>
                                       );
                                     }
-                                    
-                                    const [startTime, endTime] = timeText.split('-');
-                                    return (
-                                      <span className="cursor-pointer hover:bg-white hover:bg-opacity-20 px-1 rounded border border-dashed border-white border-opacity-50">
-                                        <span 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            console.log('Calendar start time clicked:', day, location);
-                                            setEditingTime({ day, location, field: 'start' });
-                                          }}
-                                          className="hover:underline"
-                                          title="Click to edit start time"
-                                        >
-                                          {startTime || 'Click to set'}
-                                        </span>
-                                        {' - '}
-                                        <span 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            console.log('Calendar end time clicked:', day, location);
-                                            setEditingTime({ day, location, field: 'end' });
-                                          }}
-                                          className="hover:underline"
-                                          title="Click to edit end time"
-                                        >
-                                          {endTime || 'Click to set'}
-                                        </span>
-                                      </span>
-                                    );
-                                  }
-                                })()}
-                              </div>
-                              <div className="text-xs opacity-90">{shiftDuration}h</div>
+                                  })()}
+                                </div>
+                                <div className="text-xs opacity-90">{shiftDuration}h</div>
                               </div>
                             ) : (
                               <div className="text-center text-xs opacity-70">No Shift</div>
@@ -1237,7 +1237,7 @@ const MasterScheduleSystem = () => {
                 })}
               </div>
             </div>
-          </div>
+                    </div>
         )}
 
         {/* Call-Off & PTO Manager Panel */}
