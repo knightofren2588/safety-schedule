@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Target, Clock, Settings, Users, BarChart3, Upload, CalendarX, MapPin, Calendar } from 'lucide-react';
 
 // ===== PASSWORD CONFIGURATION =====
@@ -48,6 +48,13 @@ const MasterScheduleSystem = () => {
     const saved = localStorage.getItem('safetySchedule_pickupRequests');
     return saved ? JSON.parse(saved) : {};
   });
+
+  // Cancelled shifts state (for building closures, holidays, etc.)
+  const [cancelledShifts, setCancelledShifts] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_cancelledShifts');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('master');
   const [selectedStaffView, setSelectedStaffView] = useState('Kyle');
@@ -324,7 +331,7 @@ const MasterScheduleSystem = () => {
   };
 
   // Generate schedule for a specific week
-  const generateWeekSchedule = (weekNum) => {
+  const generateWeekSchedule = useCallback((weekNum) => {
     try {
       const dates = getWeekDates(weekNum);
       const firstDate = dates[0];
@@ -391,7 +398,7 @@ const MasterScheduleSystem = () => {
         assignments: {}
       };
     }
-  };
+  }, [getWeekDates, getWeekMonthYear, formatDate]);
 
   // Base schedule data with dynamic generation
   const [baseSchedule, setBaseSchedule] = useState(() => {
@@ -556,6 +563,54 @@ const MasterScheduleSystem = () => {
     );
     
     return isCallOff || isPTO;
+  };
+
+  // Check if a shift is cancelled
+  const isShiftCancelled = (day, location, weekNum) => {
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    const cancelledList = cancelledShifts[dateKey] || [];
+    return cancelledList.some(cancellation => 
+      cancellation.day === day && cancellation.location === location
+    );
+  };
+
+  // Toggle shift cancellation
+  const toggleShiftCancellation = (day, location, weekNum, reason = 'Building Closure') => {
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    const updatedCancelledShifts = { ...cancelledShifts };
+    
+    if (!updatedCancelledShifts[dateKey]) {
+      updatedCancelledShifts[dateKey] = [];
+    }
+    
+    const existingIndex = updatedCancelledShifts[dateKey].findIndex(
+      cancellation => cancellation.day === day && cancellation.location === location
+    );
+    
+    if (existingIndex >= 0) {
+      // Remove cancellation
+      updatedCancelledShifts[dateKey].splice(existingIndex, 1);
+      if (updatedCancelledShifts[dateKey].length === 0) {
+        delete updatedCancelledShifts[dateKey];
+      }
+    } else {
+      // Add cancellation
+      updatedCancelledShifts[dateKey].push({
+        day,
+        location,
+        reason,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    setCancelledShifts(updatedCancelledShifts);
+    localStorage.setItem('safetySchedule_cancelledShifts', JSON.stringify(updatedCancelledShifts));
   };
 
   const getAvailableStaff = (day, weekNum) => {
@@ -2559,20 +2614,29 @@ const MasterScheduleSystem = () => {
                             <div
                               key={location}
                               className={`rounded-lg p-3 transition-all duration-200 ${
-                                isOpen 
-                                  ? 'bg-gray-300 dark:bg-gray-600 border-2 border-dashed border-gray-400' 
-                                  : `${staffInfo[assignment].color} text-white`
+                                isShiftCancelled(day, location, currentWeek)
+                                  ? 'bg-gray-400 dark:bg-gray-500 border-2 border-dashed border-gray-500 opacity-60'
+                                  : isOpen 
+                                    ? 'bg-gray-300 dark:bg-gray-600 border-2 border-dashed border-gray-400' 
+                                    : `${staffInfo[assignment].color} text-white`
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-semibold flex items-center gap-2">
                                   {locationIcons[location]} {location}
                                 </span>
-                                {isOpen && (
-                                  <span className="text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
-                                    PICKUP
-                                  </span>
-                                )}
+                                <div className="flex items-center gap-1">
+                                  {isShiftCancelled(day, location, currentWeek) && (
+                                    <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full">
+                                      CANCELLED
+                                    </span>
+                                  )}
+                                  {isOpen && (
+                                    <span className="text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
+                                      PICKUP
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                               
 
@@ -2622,6 +2686,18 @@ const MasterScheduleSystem = () => {
                                   
                                   <div className="text-xs opacity-75 flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
+                                    {/* Cancellation Button */}
+                                    <button
+                                      onClick={() => toggleShiftCancellation(day, location, currentWeek)}
+                                      className={`ml-2 px-2 py-1 text-xs rounded ${
+                                        isShiftCancelled(day, location, currentWeek)
+                                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                                          : 'bg-red-500 hover:bg-red-600 text-white'
+                                      }`}
+                                      title={isShiftCancelled(day, location, currentWeek) ? 'Restore Shift' : 'Cancel Shift'}
+                                    >
+                                      {isShiftCancelled(day, location, currentWeek) ? '🔄 Restore' : '❌ Cancel'}
+                                    </button>
                                     {(() => {
                                       const customTime = getCustomShiftTime(day, location, currentWeek);
                                       const isEditing = editingTime && editingTime.day === day && editingTime.location === location;
