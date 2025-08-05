@@ -608,6 +608,32 @@ const MasterScheduleSystem = () => {
     }
   }, [getWeekDates, getWeekMonthYear, formatDate]);
 
+  // Function to restore base schedule data
+  const restoreBaseSchedule = () => {
+    console.log('🔄 Restoring base schedule data...');
+    
+    // Generate fresh schedule for all weeks
+    const restoredSchedule = {};
+    for (let week = 1; week <= TOTAL_WEEKS; week++) {
+      try {
+        const weekSchedule = generateWeekSchedule(week);
+        if (weekSchedule && weekSchedule.assignments) {
+          restoredSchedule[week] = weekSchedule;
+          console.log(`✅ Restored week ${week}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error restoring week ${week}:`, error);
+      }
+    }
+    
+    // Save to localStorage
+    setBaseSchedule(restoredSchedule);
+    saveDataWithSync('safetySchedule_baseSchedule', restoredSchedule);
+    
+    console.log('✅ Base schedule restored successfully!');
+    alert('Schedule data has been restored! All weeks have been regenerated with the correct rotation pattern.');
+  };
+
   // Base schedule data with dynamic generation
   const [baseSchedule, setBaseSchedule] = useState(() => {
     const saved = localStorage.getItem('safetySchedule_baseSchedule');
@@ -1567,7 +1593,7 @@ const MasterScheduleSystem = () => {
                 {showCalendar && ' (Disabled in Calendar)'}
               </button>
 
-              <button
+                            <button
                 onClick={() => setShowAnalytics(!showAnalytics)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   showAnalytics ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1575,6 +1601,13 @@ const MasterScheduleSystem = () => {
               >
                 <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4" />
                 Analytics
+              </button>
+
+              <button
+                onClick={restoreBaseSchedule}
+                className="flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-xs lg:text-sm"
+              >
+                🔄 Restore Schedule
               </button>
 
               <button
