@@ -778,6 +778,43 @@ const MasterScheduleSystem = () => {
     return isCallOff || isPTO;
   };
 
+  // Function to remove staff off status
+  const removeStaffOff = (staff, day, weekNum) => {
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    if (dayIndex === -1) return;
+    
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    // Remove from call-offs
+    setCallOffs(prev => {
+      const updated = { ...prev };
+      if (updated[dateKey]) {
+        updated[dateKey] = updated[dateKey].filter(req => 
+          (typeof req === 'string' && req !== staff) ||
+          (typeof req === 'object' && req.staff !== staff)
+        );
+        if (updated[dateKey].length === 0) delete updated[dateKey];
+      }
+      localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+      return updated;
+    });
+    
+    // Remove from PTO requests
+    setPtoRequests(prev => {
+      const updated = { ...prev };
+      if (updated[dateKey]) {
+        updated[dateKey] = updated[dateKey].filter(req => 
+          (typeof req === 'string' && req !== staff) ||
+          (typeof req === 'object' && req.staff !== staff)
+        );
+        if (updated[dateKey].length === 0) delete updated[dateKey];
+      }
+      localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // Check if a shift is cancelled
   const isShiftCancelled = (day, location, weekNum) => {
     const weekDates = getWeekDates(weekNum);
@@ -1920,6 +1957,16 @@ const MasterScheduleSystem = () => {
                               <div className="text-center">
                                 <div className="text-xs font-semibold text-red-600">OFF</div>
                                 <div className="text-xs text-red-500">Requested</div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeStaffOff(staff, day, currentWeek);
+                                  }}
+                                  className="mt-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                  title="Restore shift"
+                                >
+                                  Restore
+                                </button>
                               </div>
                             ) : location ? (
                               <div className="text-center">
@@ -3239,6 +3286,23 @@ const MasterScheduleSystem = () => {
                                         <option key={staff} value={staff}>{staff}</option>
                                       ))}
                                     </select>
+                                    
+                                    {/* Restore Staff Off Status */}
+                                    {['Kyle', 'Mia', 'Tyler', 'Mike'].map(staff => {
+                                      if (isStaffOff(staff, day, currentWeek)) {
+                                        return (
+                                          <button
+                                            key={staff}
+                                            onClick={() => removeStaffOff(staff, day, currentWeek)}
+                                            className="mt-1 w-full px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                            title={`Restore ${staff} from OFF status`}
+                                          >
+                                            Restore {staff}
+                                          </button>
+                                        );
+                                      }
+                                      return null;
+                                    })}
                                   </div>
                                   
                                   <div className="text-xs opacity-75 flex items-center gap-1">
