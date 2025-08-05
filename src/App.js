@@ -99,7 +99,6 @@ const MasterScheduleSystem = () => {
   const [calendarEditingTime, setCalendarEditingTime] = useState(null); // Separate state for calendar editing
   const [dragState, setDragState] = useState(null); // { staff, day, location, week }
   const [dragOverState, setDragOverState] = useState(null); // { staff, day, location, week }
-  const [activeTab, setActiveTab] = useState('add'); // For tab navigation in call-off manager
 
   // Force master view when calendar is open
   useEffect(() => {
@@ -320,6 +319,42 @@ const MasterScheduleSystem = () => {
     } else if (newStatus === 'late') {
       // Add to late employees
       toggleEmployeeLate(staff, day, currentWeek, 'Late Arrival');
+    } else if (newStatus === 'remove') {
+      // Remove status - clear PTO, call-off, and late status
+      const dateKey = getWeekDates(currentWeek)[days.indexOf(day)].toISOString().split('T')[0];
+      
+      // Remove from PTO requests
+      setPtoRequests(prev => {
+        const updated = { ...prev };
+        if (updated[dateKey]) {
+          updated[dateKey] = updated[dateKey].filter(req => req.staff !== staff);
+          if (updated[dateKey].length === 0) delete updated[dateKey];
+        }
+        localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+        return updated;
+      });
+      
+      // Remove from call-offs
+      setCallOffs(prev => {
+        const updated = { ...prev };
+        if (updated[dateKey]) {
+          updated[dateKey] = updated[dateKey].filter(req => req.staff !== staff);
+          if (updated[dateKey].length === 0) delete updated[dateKey];
+        }
+        localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+        return updated;
+      });
+      
+      // Remove from late employees
+      setLateEmployees(prev => {
+        const updated = { ...prev };
+        const lateKey = `${staff}-${day}-${currentWeek}`;
+        if (updated[lateKey]) {
+          delete updated[lateKey];
+        }
+        localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updated));
+        return updated;
+      });
     }
   };
 
@@ -2039,6 +2074,7 @@ const MasterScheduleSystem = () => {
                                   <option value="pto">PTO</option>
                                   <option value="calloff">Call-Off</option>
                                   <option value="late">Late</option>
+                                  <option value="remove">Remove Status</option>
                                 </select>
                               </div>
                             ) : (
@@ -3431,6 +3467,45 @@ const MasterScheduleSystem = () => {
 
                           <div className="text-lg font-bold text-green-600">
                             {shift.duration} hours
+                          </div>
+                          
+                          {/* Individual View Controls */}
+                          <div className="space-y-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
+                            {/* Time Editing */}
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Start time"
+                                value={(() => {
+                                  const customTime = getCustomShiftTime(shift.day, shift.location, currentWeek);
+                                  return customTime?.start || shift.shiftHours.start;
+                                })()}
+                                onChange={(e) => handleInlineTimeEdit(shift.day, shift.location, 'start', e.target.value)}
+                                className="flex-1 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                              />
+                              <input
+                                type="text"
+                                placeholder="End time"
+                                value={(() => {
+                                  const customTime = getCustomShiftTime(shift.day, shift.location, currentWeek);
+                                  return customTime?.end || shift.shiftHours.end;
+                                })()}
+                                onChange={(e) => handleInlineTimeEdit(shift.day, shift.location, 'end', e.target.value)}
+                                className="flex-1 p-1 text-xs bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                              />
+                            </div>
+                            
+                            {/* Status Management */}
+                            <select
+                              onChange={(e) => handleCalendarStatusChange(shift.day, shift.location, selectedStaffView, e.target.value)}
+                              className="w-full p-1 text-xs bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                            >
+                              <option value="">Set Status</option>
+                              <option value="pto">PTO</option>
+                              <option value="calloff">Call-Off</option>
+                              <option value="late">Late</option>
+                              <option value="remove">Remove Status</option>
+                            </select>
                           </div>
                         </div>
                       </div>
