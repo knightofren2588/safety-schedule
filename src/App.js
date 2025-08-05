@@ -99,6 +99,7 @@ const MasterScheduleSystem = () => {
   const [calendarEditingTime, setCalendarEditingTime] = useState(null); // Separate state for calendar editing
   const [dragState, setDragState] = useState(null); // { staff, day, location, week }
   const [dragOverState, setDragOverState] = useState(null); // { staff, day, location, week }
+  const [activeTab, setActiveTab] = useState('add'); // For tab navigation in call-off manager
 
   // Force master view when calendar is open
   useEffect(() => {
@@ -273,6 +274,52 @@ const MasterScheduleSystem = () => {
         saveDataWithSync('safetySchedule_baseSchedule', updated);
         return updated;
       });
+    }
+  };
+
+  // Calendar status management
+  const handleCalendarStatusChange = (day, location, staff, newStatus) => {
+    console.log('📅 Status change:', staff, '->', newStatus, 'at', day, location);
+    
+    if (newStatus === 'pto') {
+      // Add to PTO requests
+      const dateKey = getWeekDates(currentWeek)[days.indexOf(day)].toISOString().split('T')[0];
+      const ptoRequest = {
+        type: 'pto',
+        staff: staff,
+        reason: 'PTO Request',
+        date: dateKey,
+        timestamp: new Date().toISOString()
+      };
+      setPtoRequests(prev => {
+        const updated = {
+          ...prev,
+          [dateKey]: [...(prev[dateKey] || []), ptoRequest]
+        };
+        localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+        return updated;
+      });
+    } else if (newStatus === 'calloff') {
+      // Add to call-offs
+      const dateKey = getWeekDates(currentWeek)[days.indexOf(day)].toISOString().split('T')[0];
+      const callOffRequest = {
+        type: 'calloff',
+        staff: staff,
+        reason: 'Call-Off Request',
+        date: dateKey,
+        timestamp: new Date().toISOString()
+      };
+      setCallOffs(prev => {
+        const updated = {
+          ...prev,
+          [dateKey]: [...(prev[dateKey] || []), callOffRequest]
+        };
+        localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+        return updated;
+      });
+    } else if (newStatus === 'late') {
+      // Add to late employees
+      toggleEmployeeLate(staff, day, currentWeek, 'Late Arrival');
     }
   };
 
@@ -1337,11 +1384,11 @@ const MasterScheduleSystem = () => {
             
             {/* Add New Officer */}
             <div className="mb-6">
-              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Add New Officer</h4>
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Add New Safety Team Member</h4>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input
                   type="text"
-                  placeholder="Officer Name"
+                                      placeholder="Team Member Name"
                   value={newOfficer.name}
                   onChange={(e) => setNewOfficer(prev => ({ ...prev, name: e.target.value }))}
                   className={`p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
@@ -1366,12 +1413,12 @@ const MasterScheduleSystem = () => {
                   <option value="bg-pink-500">Pink</option>
                   <option value="bg-indigo-500">Indigo</option>
                 </select>
-                <button
-                  onClick={addOfficer}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                >
-                  Add Officer
-                </button>
+                                  <button
+                    onClick={addOfficer}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                  >
+                    Add Team Member
+                  </button>
               </div>
             </div>
 
@@ -1980,6 +2027,18 @@ const MasterScheduleSystem = () => {
                                   {['Kyle', 'Mia', 'Tyler', 'Mike'].map(teamMember => (
                                     <option key={teamMember} value={teamMember}>{teamMember}</option>
                                   ))}
+                                </select>
+                                
+                                {/* Status Dropdown */}
+                                <select
+                                  onChange={(e) => handleCalendarStatusChange(day, location, staff, e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold mt-1"
+                                >
+                                  <option value="">Set Status</option>
+                                  <option value="pto">PTO</option>
+                                  <option value="calloff">Call-Off</option>
+                                  <option value="late">Late</option>
                                 </select>
                               </div>
                             ) : (
