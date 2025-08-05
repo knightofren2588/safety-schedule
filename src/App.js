@@ -14,6 +14,11 @@ const PASSWORDS = {
 };
 // ===== END PASSWORD CONFIGURATION =====
 
+// ===== GLOBAL CONSTANTS =====
+const TOTAL_WEEKS = 52; // Support up to 52 weeks (1 year)
+const START_DATE = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
+// ===== END GLOBAL CONSTANTS =====
+
 const MasterScheduleSystem = () => {
   // State management
   const [darkMode, setDarkMode] = useState(false);
@@ -434,8 +439,6 @@ const MasterScheduleSystem = () => {
   };
 
   // Date functions (moved before generateWeekSchedule to avoid circular dependencies)
-  const START_DATE = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
-  const TOTAL_WEEKS = 52; // Support up to 52 weeks (1 year)
   
   const getWeekDates = (weekNum) => {
     try {
