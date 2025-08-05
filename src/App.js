@@ -180,7 +180,25 @@ const MasterScheduleSystem = () => {
   const handleDragOver = (e, staff, day, location) => {
     e.preventDefault();
     e.stopPropagation();
-    setDragOverState({ staff, day, location, week: currentWeek });
+    
+    // Only set drag over state if there's a valid drop target
+    if (staff && day && location) {
+      console.log('=== DRAG OVER DEBUG ===');
+      console.log('Drag over target:', { staff, day, location });
+      console.log('Current drag state:', dragState);
+      
+      // Only allow dropping on cells with staff assigned (not empty cells)
+      if (staff !== 'undefined' && staff !== undefined) {
+        setDragOverState({ staff, day, location, week: currentWeek });
+        console.log('✅ Valid drop target - setting drag over state');
+      } else {
+        console.log('❌ Invalid drop target - empty cell');
+        setDragOverState(null);
+      }
+    } else {
+      console.log('❌ Invalid drag over - missing data');
+      setDragOverState(null);
+    }
   };
 
   const handleDrop = (e, targetStaff, targetDay, targetLocation) => {
@@ -213,6 +231,14 @@ const MasterScheduleSystem = () => {
     // Don't allow dropping on the same location
     if (sourceDay === targetDay && sourceLocation === targetLocation) {
       console.log('❌ Cannot drop on same location');
+      setDragState(null);
+      setDragOverState(null);
+      return;
+    }
+    
+    // Don't allow dropping on empty cells (no staff assigned)
+    if (!targetStaff) {
+      console.log('❌ Cannot drop on empty cell');
       setDragState(null);
       setDragOverState(null);
       return;
@@ -270,6 +296,11 @@ const MasterScheduleSystem = () => {
     setDragOverState(null);
     
     console.log('✅ Staff swap completed - localStorage saved');
+    
+    // Force re-render
+    setTimeout(() => {
+      setCurrentWeek(prev => prev);
+    }, 100);
   };
 
   const handleDragEnd = (e) => {
@@ -1622,6 +1653,27 @@ const MasterScheduleSystem = () => {
                   >
                     Dec
                   </button>
+                  
+                  {/* Dropdown for months past December */}
+                  <select
+                    onChange={(e) => {
+                      const selectedWeek = parseInt(e.target.value);
+                      if (selectedWeek > 0) {
+                        setCurrentWeek(selectedWeek);
+                      }
+                    }}
+                    value=""
+                    className={`px-2 py-1 text-xs rounded border ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-700 border-gray-300'}`}
+                  >
+                    <option value="">More Months...</option>
+                    <option value="23">Jan 2025 (Week 23-26)</option>
+                    <option value="27">Feb 2025 (Week 27-30)</option>
+                    <option value="31">Mar 2025 (Week 31-35)</option>
+                    <option value="36">Apr 2025 (Week 36-39)</option>
+                    <option value="40">May 2025 (Week 40-43)</option>
+                    <option value="44">Jun 2025 (Week 44-47)</option>
+                    <option value="48">Jul 2025 (Week 48-52)</option>
+                  </select>
                 </div>
               </div>
             </div>
