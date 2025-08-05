@@ -16,7 +16,7 @@ const PASSWORDS = {
 
 // ===== GLOBAL CONSTANTS =====
 const TOTAL_WEEKS = 52; // Support up to 52 weeks (1 year)
-const START_DATE = new Date(2024, 7, 4); // August 4th, 2024 (Monday)
+const START_DATE = new Date(2025, 7, 4); // August 4th, 2025 (Monday)
 // ===== END GLOBAL CONSTANTS =====
 
 const MasterScheduleSystem = () => {
@@ -505,7 +505,7 @@ const MasterScheduleSystem = () => {
       // Return fallback dates
       const fallbackDates = [];
       for (let i = 0; i < 7; i++) {
-        fallbackDates.push(new Date(2024, 7, 4 + i));
+        fallbackDates.push(new Date(2025, 7, 4 + i));
       }
       return fallbackDates;
     }
@@ -1469,7 +1469,7 @@ const MasterScheduleSystem = () => {
             {isAuthenticated ? 'Base schedule targeting 40 hours + voluntary pickup shifts' : 'Personal schedule view'}
           </p>
           <p className={`text-xs lg:text-sm ${darkMode ? 'text-gray-200' : 'text-gray-500'} mt-1 lg:mt-2`}>
-            {currentMonthYear.month} {currentMonthYear.year} • 4-Week Rotation • Start: Monday, August 4th, 2024
+            {currentMonthYear.month} {currentMonthYear.year} • 4-Week Rotation • Start: Monday, August 4th, 2025
           </p>
           {!isAuthenticated && (
             <div className={`mt-3 p-3 rounded-lg ${darkMode ? 'bg-yellow-900 bg-opacity-30 border border-yellow-600' : 'bg-yellow-50 border border-yellow-200'}`}>
@@ -1867,7 +1867,7 @@ const MasterScheduleSystem = () => {
                 <div className="flex gap-1">
                   <button
                     onClick={() => {
-                      // Jump to August 2024 (weeks 1-4)
+                      // Jump to August 2025 (weeks 1-4)
                       setCurrentWeek(1);
                     }}
                     className={`px-2 py-1 text-xs rounded ${currentWeek >= 1 && currentWeek <= 4 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
