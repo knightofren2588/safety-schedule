@@ -149,16 +149,31 @@ const MasterScheduleSystem = () => {
   const handleDragStart = (e, staff, day, location) => {
     e.stopPropagation();
     const staffIsOff = isStaffOff(staff, day, currentWeek);
-    console.log('Drag start attempt:', staff, day, location, 'isOff:', staffIsOff);
+    console.log('=== DRAG START DEBUG ===');
+    console.log('Staff:', staff, 'Day:', day, 'Location:', location, 'Week:', currentWeek);
+    console.log('Is staff off:', staffIsOff);
+    console.log('Base schedule for week:', baseSchedule[currentWeek]);
+    console.log('Staff info:', staffInfo[staff]);
+    
     if (staff && day && location && !staffIsOff) {
-      setDragState({ staff, day, location, week: currentWeek });
-      console.log('Drag started successfully:', staff, day, location);
+      const dragData = { staff, day, location, week: currentWeek };
+      setDragState(dragData);
+      console.log('✅ Drag started successfully:', dragData);
+      
       // Set drag image and data
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', `${staff}-${day}-${location}`);
-      e.dataTransfer.setData('application/json', JSON.stringify({ staff, day, location, week: currentWeek }));
+      e.dataTransfer.setData('application/json', JSON.stringify(dragData));
+      
+      // Set drag image
+      const dragImage = e.target.cloneNode(true);
+      dragImage.style.opacity = '0.5';
+      document.body.appendChild(dragImage);
+      e.dataTransfer.setDragImage(dragImage, 0, 0);
+      setTimeout(() => document.body.removeChild(dragImage), 0);
     } else {
-      console.log('Drag start failed - missing data or staff is off');
+      console.log('❌ Drag start failed - missing data or staff is off');
+      console.log('Staff exists:', !!staff, 'Day exists:', !!day, 'Location exists:', !!location, 'Not off:', !staffIsOff);
     }
   };
 
@@ -172,20 +187,24 @@ const MasterScheduleSystem = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('Drop attempt:', targetStaff, targetDay, targetLocation, 'dragState:', dragState);
+    console.log('=== DROP DEBUG ===');
+    console.log('Target:', { targetStaff, targetDay, targetLocation });
+    console.log('Drag state:', dragState);
+    console.log('Current week:', currentWeek);
+    console.log('Base schedule before:', baseSchedule[currentWeek]);
     
     if (!dragState) {
-      console.log('Drop failed - no drag state');
+      console.log('❌ Drop failed - no drag state');
       return;
     }
     
     const { staff: sourceStaff, day: sourceDay, location: sourceLocation } = dragState;
     
-    console.log('Drop:', sourceStaff, sourceDay, sourceLocation, '->', targetStaff, targetDay, targetLocation);
+    console.log('Drop operation:', sourceStaff, sourceDay, sourceLocation, '->', targetStaff, targetDay, targetLocation);
     
     // Safety check for undefined targetLocation
     if (!targetLocation) {
-      console.log('Cannot drop - targetLocation is undefined');
+      console.log('❌ Cannot drop - targetLocation is undefined');
       setDragState(null);
       setDragOverState(null);
       return;
@@ -193,7 +212,7 @@ const MasterScheduleSystem = () => {
     
     // Don't allow dropping on the same location
     if (sourceDay === targetDay && sourceLocation === targetLocation) {
-      console.log('Cannot drop on same location');
+      console.log('❌ Cannot drop on same location');
       setDragState(null);
       setDragOverState(null);
       return;
@@ -201,19 +220,28 @@ const MasterScheduleSystem = () => {
     
     // Perform the staff swap
     setBaseSchedule(prev => {
+      console.log('=== UPDATING SCHEDULE ===');
+      console.log('Previous schedule:', prev);
+      
       const updated = { ...prev };
       
       // Ensure the week exists
       if (!updated[currentWeek]) {
+        console.log('Creating new week:', currentWeek);
         updated[currentWeek] = { assignments: {} };
       }
       if (!updated[currentWeek].assignments) {
+        console.log('Creating assignments object for week:', currentWeek);
         updated[currentWeek].assignments = {};
       }
+      
+      console.log('Before swap - source assignment:', updated[currentWeek].assignments[sourceDay]?.[sourceLocation]);
+      console.log('Before swap - target assignment:', updated[currentWeek].assignments[targetDay]?.[targetLocation]);
       
       // Remove source assignment
       if (updated[currentWeek].assignments[sourceDay]?.[sourceLocation]) {
         delete updated[currentWeek].assignments[sourceDay][sourceLocation];
+        console.log('✅ Removed source assignment');
       }
       
       // Add target assignment
@@ -221,6 +249,7 @@ const MasterScheduleSystem = () => {
         updated[currentWeek].assignments[targetDay] = {};
       }
       updated[currentWeek].assignments[targetDay][targetLocation] = sourceStaff;
+      console.log('✅ Added target assignment:', sourceStaff, 'to', targetDay, targetLocation);
       
       // If target had a staff member, swap them to the source location
       if (targetStaff && targetStaff !== sourceStaff) {
@@ -228,9 +257,10 @@ const MasterScheduleSystem = () => {
           updated[currentWeek].assignments[sourceDay] = {};
         }
         updated[currentWeek].assignments[sourceDay][sourceLocation] = targetStaff;
+        console.log('✅ Swapped target staff:', targetStaff, 'to source location');
       }
       
-      console.log('Updated schedule:', updated);
+      console.log('✅ Final updated schedule:', updated[currentWeek]);
       saveDataWithSync('safetySchedule_baseSchedule', updated);
       return updated;
     });
@@ -239,7 +269,7 @@ const MasterScheduleSystem = () => {
     setDragState(null);
     setDragOverState(null);
     
-    console.log('Staff swap completed - localStorage saved');
+    console.log('✅ Staff swap completed - localStorage saved');
   };
 
   const handleDragEnd = (e) => {
@@ -401,14 +431,22 @@ const MasterScheduleSystem = () => {
   // Generate schedule for a specific week
   const generateWeekSchedule = useCallback((weekNum) => {
     try {
+      console.log('=== GENERATING WEEK SCHEDULE ===');
+      console.log('Week number:', weekNum);
+      
       const dates = getWeekDates(weekNum);
       const firstDate = dates[0];
       const lastDate = dates[6];
       const monthYear = getWeekMonthYear(weekNum);
       
+      console.log('Generated dates:', dates);
+      console.log('Month/Year:', monthYear);
+      
       // Staff rotation pattern (4-week cycle)
       const staffRotation = ['Kyle', 'Tyler', 'Mia', 'Kyle'];
       const saturdayStaff = staffRotation[(weekNum - 1) % 4];
+      
+      console.log('Saturday staff:', saturdayStaff);
       
       // Base assignments pattern (rotates every 4 weeks)
       const basePatterns = [
@@ -453,20 +491,27 @@ const MasterScheduleSystem = () => {
       const patternIndex = (weekNum - 1) % 4;
       const assignments = basePatterns[patternIndex];
       
-      return {
+      console.log('Pattern index:', patternIndex);
+      console.log('Selected assignments:', assignments);
+      
+      const result = {
         title: `Week ${weekNum} - ${monthYear.month} ${formatDate(firstDate)}-${formatDate(lastDate)}`,
         saturdayStaff,
         assignments
       };
+      
+      console.log('✅ Generated schedule:', result);
+      return result;
     } catch (error) {
-      console.error('Error generating week schedule:', error);
+      console.error('❌ Error generating week schedule:', error);
+      console.error('Error details:', error.message, error.stack);
       return {
         title: `Week ${weekNum}`,
         saturdayStaff: 'Kyle',
         assignments: {}
       };
     }
-  }, []);
+  }, [getWeekDates, getWeekMonthYear, formatDate]);
 
   // Base schedule data with dynamic generation
   const [baseSchedule, setBaseSchedule] = useState(() => {
@@ -519,22 +564,36 @@ const MasterScheduleSystem = () => {
   // Generate missing weeks when currentWeek changes
   useEffect(() => {
     try {
+      console.log('=== WEEK GENERATION EFFECT ===');
+      console.log('Current week:', currentWeek);
+      console.log('Base schedule exists for week:', !!baseSchedule[currentWeek]);
+      console.log('All weeks in baseSchedule:', Object.keys(baseSchedule));
+      
       if (!baseSchedule[currentWeek]) {
-        console.log('Generating schedule for week:', currentWeek);
+        console.log('🔄 Generating schedule for week:', currentWeek);
         const newSchedule = generateWeekSchedule(currentWeek);
+        
         if (newSchedule && newSchedule.assignments) {
+          console.log('✅ Generated valid schedule for week:', currentWeek);
           setBaseSchedule(prev => {
             const updated = { ...prev, [currentWeek]: newSchedule };
+            console.log('📝 Saving updated schedule to localStorage');
             saveDataWithSync('safetySchedule_baseSchedule', updated);
             return updated;
           });
         } else {
-          console.error('Generated schedule is invalid for week:', currentWeek);
+          console.error('❌ Generated schedule is invalid for week:', currentWeek);
+          console.error('Generated schedule:', newSchedule);
         }
+      } else {
+        console.log('✅ Week', currentWeek, 'already exists in baseSchedule');
       }
     } catch (error) {
-      console.error('Error generating missing week:', error);
+      console.error('❌ Error generating missing week:', error);
+      console.error('Error details:', error.message, error.stack);
+      
       // Fallback: create a basic schedule structure
+      console.log('🔄 Creating fallback schedule for week:', currentWeek);
       setBaseSchedule(prev => {
         const fallbackSchedule = {
           title: `Week ${currentWeek}`,
@@ -542,11 +601,12 @@ const MasterScheduleSystem = () => {
           assignments: {}
         };
         const updated = { ...prev, [currentWeek]: fallbackSchedule };
+        console.log('📝 Saving fallback schedule to localStorage');
         saveDataWithSync('safetySchedule_baseSchedule', updated);
         return updated;
       });
     }
-  }, [currentWeek]); // Only depend on currentWeek to prevent infinite loops
+  }, [currentWeek, generateWeekSchedule]); // Include generateWeekSchedule to ensure it's available
 
   // Function to get the current week number based on today's date
   const getCurrentWeekNumber = () => {
