@@ -49,6 +49,9 @@ const MasterScheduleSystem = () => {
     const saved = localStorage.getItem('safetySchedule_earlyArrivalRequests');
     return saved ? JSON.parse(saved) : {};
   });
+  
+
+  
   const [pickupRequests, setPickupRequests] = useState(() => {
     const saved = localStorage.getItem('safetySchedule_pickupRequests');
     return saved ? JSON.parse(saved) : {};
@@ -909,6 +912,90 @@ const MasterScheduleSystem = () => {
     
     setLateEmployees(updatedLateEmployees);
     localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updatedLateEmployees));
+  };
+
+  // Calculate early arrival opportunities
+  const calculateEarlyArrivalOpportunities = (staff, day, weekNum) => {
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    const opportunities = [];
+    
+    // Get staff's current assignment for this day
+    const currentSchedule = baseSchedule[weekNum]?.assignments?.[day] || {};
+    const currentLocation = Object.keys(currentSchedule).find(loc => currentSchedule[loc] === staff);
+    const currentShift = getCustomShiftTime(day, currentLocation, weekNum) || getOperatingHours(currentLocation, day);
+    
+    if (!currentShift || !currentShift.start) return opportunities;
+    
+    const currentStartTime = currentShift.start;
+    
+    // Check all locations for early arrival opportunities
+    Object.keys(sites).forEach(location => {
+      const locationHours = getOperatingHours(location, day);
+      if (!locationHours || !locationHours.start) return;
+      
+      const locationStartTime = locationHours.start;
+      
+      // If location opens earlier than staff's current start time
+      if (locationStartTime < currentStartTime) {
+        const timeDiff = calculateTimeDifference(locationStartTime, currentStartTime);
+        
+        opportunities.push({
+          location,
+          earlyStart: locationStartTime,
+          currentStart: currentStartTime,
+          hoursAvailable: timeDiff,
+          reason: `Come in ${timeDiff} hours early at ${location}`
+        });
+      }
+    });
+    
+    return opportunities;
+  };
+
+  // Calculate time difference in hours
+  const calculateTimeDifference = (startTime, endTime) => {
+    const parseTime = (timeStr) => {
+      const [time, period] = timeStr.toLowerCase().replace(/[ap]m?$/, '').split(/(?=[ap])/);
+      let [hours, minutes] = time.split(':').map(Number);
+      if (period === 'p' && hours !== 12) hours += 12;
+      if (period === 'a' && hours === 12) hours = 0;
+      return hours + minutes / 60;
+    };
+    
+    const start = parseTime(startTime);
+    const end = parseTime(endTime);
+    return Math.round((end - start) * 10) / 10;
+  };
+
+  // Request early arrival
+  const requestEarlyArrival = (staff, day, weekNum, opportunity) => {
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    const request = {
+      staff,
+      day,
+      weekNum,
+      location: opportunity.location,
+      earlyStart: opportunity.earlyStart,
+      currentStart: opportunity.currentStart,
+      hoursAvailable: opportunity.hoursAvailable,
+      reason: opportunity.reason,
+      timestamp: new Date().toISOString()
+    };
+    
+    setEarlyArrivalRequests(prev => {
+      const updated = {
+        ...prev,
+        [dateKey]: [...(prev[dateKey] || []), request]
+      };
+      localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const getAvailableStaff = (day, weekNum) => {
@@ -2123,6 +2210,32 @@ const MasterScheduleSystem = () => {
                                   <option value="late">Late</option>
                                   <option value="remove">Remove Status</option>
                                 </select>
+                                
+                                {/* Early Arrival Opportunities */}
+                                {(() => {
+                                  const opportunities = calculateEarlyArrivalOpportunities(staff, day, currentWeek);
+                                  if (opportunities.length > 0) {
+                                    return (
+                                      <div className="space-y-1 mt-1">
+                                        <div className="text-xs font-semibold text-blue-600">Early Options:</div>
+                                        {opportunities.map((opp, index) => (
+                                          <button
+                                            key={index}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              requestEarlyArrival(staff, day, currentWeek, opp);
+                                            }}
+                                            className="w-full p-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                            title={opp.reason}
+                                          >
+                                            {opp.location} {opp.earlyStart}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
                               </div>
                             ) : (
                               <div className="text-center text-xs opacity-70">No Shift</div>
@@ -3570,6 +3683,29 @@ const MasterScheduleSystem = () => {
                               <option value="late">Late</option>
                               <option value="remove">Remove Status</option>
                             </select>
+                            
+                            {/* Early Arrival Opportunities */}
+                            {(() => {
+                              const opportunities = calculateEarlyArrivalOpportunities(selectedStaffView, shift.day, currentWeek);
+                              if (opportunities.length > 0) {
+                                return (
+                                  <div className="space-y-1">
+                                    <div className="text-xs font-semibold text-blue-600">Early Arrival Opportunities:</div>
+                                    {opportunities.map((opp, index) => (
+                                      <button
+                                        key={index}
+                                        onClick={() => requestEarlyArrival(selectedStaffView, shift.day, currentWeek, opp)}
+                                        className="w-full p-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                        title={opp.reason}
+                                      >
+                                        {opp.location}: {opp.earlyStart} ({opp.hoursAvailable}h early)
+                                      </button>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                         </div>
                       </div>
