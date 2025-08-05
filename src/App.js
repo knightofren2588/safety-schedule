@@ -153,9 +153,10 @@ const MasterScheduleSystem = () => {
     if (staff && day && location && !staffIsOff) {
       setDragState({ staff, day, location, week: currentWeek });
       console.log('Drag started successfully:', staff, day, location);
-      // Set drag image
+      // Set drag image and data
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', `${staff}-${day}-${location}`);
+      e.dataTransfer.setData('application/json', JSON.stringify({ staff, day, location, week: currentWeek }));
     } else {
       console.log('Drag start failed - missing data or staff is off');
     }
@@ -190,39 +191,49 @@ const MasterScheduleSystem = () => {
       return;
     }
     
+    // Don't allow dropping on the same location
+    if (sourceDay === targetDay && sourceLocation === targetLocation) {
+      console.log('Cannot drop on same location');
+      setDragState(null);
+      setDragOverState(null);
+      return;
+    }
+    
     // Perform the staff swap
-    const updatedBaseSchedule = { ...baseSchedule };
-    
-    // Remove source assignment
-    if (updatedBaseSchedule[currentWeek]?.assignments[sourceDay]?.[sourceLocation]) {
-      delete updatedBaseSchedule[currentWeek].assignments[sourceDay][sourceLocation];
-    }
-    
-    // Add target assignment
-    if (!updatedBaseSchedule[currentWeek]) {
-      updatedBaseSchedule[currentWeek] = { assignments: {} };
-    }
-    if (!updatedBaseSchedule[currentWeek].assignments[targetDay]) {
-      updatedBaseSchedule[currentWeek].assignments[targetDay] = {};
-    }
-    updatedBaseSchedule[currentWeek].assignments[targetDay][targetLocation] = sourceStaff;
-    
-    // If target had a staff member, swap them to the source location
-    if (targetStaff && targetStaff !== 'No Shift') {
-      if (!updatedBaseSchedule[currentWeek].assignments[sourceDay]) {
-        updatedBaseSchedule[currentWeek].assignments[sourceDay] = {};
+    setBaseSchedule(prev => {
+      const updated = { ...prev };
+      
+      // Ensure the week exists
+      if (!updated[currentWeek]) {
+        updated[currentWeek] = { assignments: {} };
       }
-      updatedBaseSchedule[currentWeek].assignments[sourceDay][sourceLocation] = targetStaff;
-    }
-    
-    console.log('Before update - baseSchedule:', baseSchedule);
-    console.log('Updated schedule:', updatedBaseSchedule);
-    
-    setBaseSchedule(updatedBaseSchedule);
-    saveDataWithSync('safetySchedule_baseSchedule', updatedBaseSchedule);
-    
-    // Force a re-render by updating a related state
-    setCurrentWeek(prev => prev); // This will trigger a re-render
+      if (!updated[currentWeek].assignments) {
+        updated[currentWeek].assignments = {};
+      }
+      
+      // Remove source assignment
+      if (updated[currentWeek].assignments[sourceDay]?.[sourceLocation]) {
+        delete updated[currentWeek].assignments[sourceDay][sourceLocation];
+      }
+      
+      // Add target assignment
+      if (!updated[currentWeek].assignments[targetDay]) {
+        updated[currentWeek].assignments[targetDay] = {};
+      }
+      updated[currentWeek].assignments[targetDay][targetLocation] = sourceStaff;
+      
+      // If target had a staff member, swap them to the source location
+      if (targetStaff && targetStaff !== sourceStaff) {
+        if (!updated[currentWeek].assignments[sourceDay]) {
+          updated[currentWeek].assignments[sourceDay] = {};
+        }
+        updated[currentWeek].assignments[sourceDay][sourceLocation] = targetStaff;
+      }
+      
+      console.log('Updated schedule:', updated);
+      saveDataWithSync('safetySchedule_baseSchedule', updated);
+      return updated;
+    });
     
     // Clear drag states
     setDragState(null);
@@ -511,14 +522,29 @@ const MasterScheduleSystem = () => {
       if (!baseSchedule[currentWeek]) {
         console.log('Generating schedule for week:', currentWeek);
         const newSchedule = generateWeekSchedule(currentWeek);
-        setBaseSchedule(prev => {
-          const updated = { ...prev, [currentWeek]: newSchedule };
-          saveDataWithSync('safetySchedule_baseSchedule', updated);
-          return updated;
-        });
+        if (newSchedule && newSchedule.assignments) {
+          setBaseSchedule(prev => {
+            const updated = { ...prev, [currentWeek]: newSchedule };
+            saveDataWithSync('safetySchedule_baseSchedule', updated);
+            return updated;
+          });
+        } else {
+          console.error('Generated schedule is invalid for week:', currentWeek);
+        }
       }
     } catch (error) {
       console.error('Error generating missing week:', error);
+      // Fallback: create a basic schedule structure
+      setBaseSchedule(prev => {
+        const fallbackSchedule = {
+          title: `Week ${currentWeek}`,
+          saturdayStaff: 'Kyle',
+          assignments: {}
+        };
+        const updated = { ...prev, [currentWeek]: fallbackSchedule };
+        saveDataWithSync('safetySchedule_baseSchedule', updated);
+        return updated;
+      });
     }
   }, [currentWeek]); // Only depend on currentWeek to prevent infinite loops
 
@@ -1581,6 +1607,10 @@ const MasterScheduleSystem = () => {
                             onDragOver={(e) => handleDragOver(e, staff, day, location)}
                             onDrop={(e) => handleDrop(e, staff, day, location)}
                             onDragEnd={handleDragEnd}
+                            onDragEnter={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
                             className={`p-3 rounded-lg border transition-all duration-200 ${
                               isOff ? 'bg-red-100 border-red-300' :
                               location ? `${staffInfo[staff].color} text-white` :
@@ -1607,10 +1637,6 @@ const MasterScheduleSystem = () => {
                               if (location && !isOff) {
                                 e.preventDefault();
                               }
-                            }}
-                            onDragEnter={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
                             }}
                           >
                             {isOff ? (
