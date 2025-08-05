@@ -485,7 +485,7 @@ const MasterScheduleSystem = () => {
 
   // Date functions (moved before generateWeekSchedule to avoid circular dependencies)
   
-  const getWeekDates = (weekNum) => {
+  const getWeekDates = useCallback((weekNum) => {
     try {
       const targetWeek = weekNum - 1;
       
@@ -509,19 +509,19 @@ const MasterScheduleSystem = () => {
       }
       return fallbackDates;
     }
-  };
+  }, []);
 
-  const getWeekMonthYear = (weekNum) => {
+  const getWeekMonthYear = useCallback((weekNum) => {
     const dates = getWeekDates(weekNum);
     const firstDate = dates[0];
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     return { month: months[firstDate.getMonth()], year: firstDate.getFullYear() };
-  };
+  }, [getWeekDates]);
 
-  const formatDate = (date) => {
+  const formatDate = useCallback((date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${months[date.getMonth()]} ${date.getDate()}`;
-  };
+  }, []);
 
   // Generate schedule for a specific week
   const generateWeekSchedule = useCallback((weekNum) => {
@@ -625,6 +625,7 @@ const MasterScheduleSystem = () => {
   });
 
   // Clean up corrupted data and generate missing weeks
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const cleanupCorruptedData = () => {
       const updatedBaseSchedule = { ...baseSchedule };
@@ -654,9 +655,10 @@ const MasterScheduleSystem = () => {
     };
     
     cleanupCorruptedData();
-  }, [baseSchedule]);
+  }, []); // Run only once on mount
 
   // Generate missing weeks when currentWeek changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     try {
       console.log('=== WEEK GENERATION EFFECT ===');
@@ -737,12 +739,7 @@ const MasterScheduleSystem = () => {
   }, [currentWeek, generateWeekSchedule]); // Include generateWeekSchedule to ensure it's available
 
   // Function to get the current week number based on today's date
-  const getCurrentWeekNumber = () => {
-    const today = new Date();
-    const diffTime = today.getTime() - START_DATE.getTime();
-    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
-    return Math.max(1, Math.min(TOTAL_WEEKS, diffWeeks + 1)); // Keep within 1-TOTAL_WEEKS range
-  };
+
 
   // Authentication functions
   const handleMasterLogin = (password) => {
@@ -930,10 +927,6 @@ const MasterScheduleSystem = () => {
 
   // Calculate early arrival opportunities
   const calculateEarlyArrivalOpportunities = (staff, day, weekNum) => {
-    const weekDates = getWeekDates(weekNum);
-    const dayIndex = days.indexOf(day);
-    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
-    
     const opportunities = [];
     
     // Get staff's current assignment for this day
@@ -1038,9 +1031,6 @@ const MasterScheduleSystem = () => {
     });
     
     // Update the actual schedule to reflect early arrival
-    const weekDates = getWeekDates(request.weekNum);
-    const dayIndex = days.indexOf(request.day);
-    const date = weekDates[dayIndex];
     
     // Update custom times to reflect early arrival
     const shiftKey = `${request.weekNum}-${request.day}-${request.location}`;
@@ -1111,9 +1101,7 @@ const MasterScheduleSystem = () => {
     });
   };
 
-  const getAvailableStaff = (day, weekNum) => {
-    return ['Kyle', 'Mia', 'Tyler', 'Mike'].filter(staff => !isStaffOff(staff, day, weekNum));
-  };
+
 
   const getOperatingHours = (location, day) => {
     // Safety check for undefined location
@@ -1325,29 +1313,7 @@ const MasterScheduleSystem = () => {
     return hours;
   };
 
-  const assignBaseShift = (day, location, staff) => {
-    setBaseSchedule(prev => {
-      // Safety check for undefined week
-      if (!prev[currentWeek]) {
-        console.log('⚠️ assignBaseShift: Week', currentWeek, 'not found in baseSchedule');
-        return prev;
-      }
-      
-      return {
-        ...prev,
-        [currentWeek]: {
-          ...prev[currentWeek],
-          assignments: {
-            ...prev[currentWeek].assignments,
-            [day]: {
-              ...prev[currentWeek].assignments[day],
-              [location]: staff
-            }
-          }
-        }
-      };
-    });
-  };
+
 
   // Roster management functions
   const addOfficer = () => {
@@ -1429,10 +1395,7 @@ const MasterScheduleSystem = () => {
     }
   };
 
-  const hasPendingChanges = (day, location, weekNum) => {
-    const changeKey = `${weekNum}-${day}-${location}`;
-    return !!pendingChanges[changeKey];
-  };
+
 
   const handleInlineTimeEdit = (day, location, field, value) => {
     console.log('handleInlineTimeEdit called:', day, location, field, value);
