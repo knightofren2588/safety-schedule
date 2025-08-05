@@ -254,6 +254,28 @@ const MasterScheduleSystem = () => {
     setDragOverState(null);
   };
 
+  // Simple staff swap function for calendar
+  const handleCalendarStaffSwap = (day, location, newStaff, currentStaff) => {
+    if (newStaff && newStaff !== currentStaff) {
+      console.log('🔄 Staff swap:', currentStaff, '->', newStaff, 'at', day, location);
+      setBaseSchedule(prev => {
+        const updated = { ...prev };
+        if (!updated[currentWeek]) {
+          updated[currentWeek] = { assignments: {} };
+        }
+        if (!updated[currentWeek].assignments) {
+          updated[currentWeek].assignments = {};
+        }
+        if (!updated[currentWeek].assignments[day]) {
+          updated[currentWeek].assignments[day] = {};
+        }
+        updated[currentWeek].assignments[day][location] = newStaff;
+        saveDataWithSync('safetySchedule_baseSchedule', updated);
+        return updated;
+      });
+    }
+  };
+
   // Enhanced localStorage with better sync
   const saveDataWithSync = (key, data) => {
     // Save to localStorage
@@ -1353,9 +1375,9 @@ const MasterScheduleSystem = () => {
               </div>
             </div>
 
-            {/* Current Officers */}
-            <div>
-              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Current Officers</h4>
+                          {/* Current Safety Team Members */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Current Safety Team Members</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.entries(staffInfo).map(([name, info]) => (
                   <div key={name} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
@@ -1946,6 +1968,19 @@ const MasterScheduleSystem = () => {
                                   })()}
                                 </div>
                                 <div className="text-xs opacity-90">{shiftDuration}h</div>
+                                
+                                {/* Staff Swap Dropdown */}
+                                <select
+                                  value={staff}
+                                  onChange={(e) => handleCalendarStaffSwap(day, location, e.target.value, staff)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full p-1 text-xs bg-white dark:bg-gray-800 rounded border border-white dark:border-gray-600 text-black dark:text-white font-semibold mt-1"
+                                >
+                                  <option value="">Select Staff</option>
+                                  {['Kyle', 'Mia', 'Tyler', 'Mike'].map(teamMember => (
+                                    <option key={teamMember} value={teamMember}>{teamMember}</option>
+                                  ))}
+                                </select>
                               </div>
                             ) : (
                               <div className="text-center text-xs opacity-70">No Shift</div>
