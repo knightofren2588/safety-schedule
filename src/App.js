@@ -1741,14 +1741,13 @@ const MasterScheduleSystem = () => {
                         
                         // Debug drag and drop setup
                         const isDraggable = location && !isOff;
-                        if (isDraggable && staff === 'Kyle' && day === 'Wednesday') {
-                          console.log('🎯 Draggable cell setup:', {
+                        if (isDraggable) {
+                          console.log('🎯 Draggable cell found:', {
                             staff,
                             day,
                             location,
                             isOff,
-                            isDraggable,
-                            draggable: isDraggable
+                            isDraggable
                           });
                         }
                         
@@ -1768,8 +1767,12 @@ const MasterScheduleSystem = () => {
                             key={dayIndex} 
                             draggable={isDraggable}
                             onDragStart={(e) => {
-                              console.log('🎯 DRAG START EVENT TRIGGERED:', { staff, day, location });
-                              handleDragStart(e, staff, day, location);
+                              console.log('🎯 DRAG START EVENT TRIGGERED:', { staff, day, location, isDraggable });
+                              if (isDraggable) {
+                                handleDragStart(e, staff, day, location);
+                              } else {
+                                console.log('❌ Drag prevented - not draggable');
+                              }
                             }}
                             onDragOver={(e) => {
                               console.log('🎯 DRAG OVER EVENT TRIGGERED:', { staff, day, location });
@@ -1802,16 +1805,10 @@ const MasterScheduleSystem = () => {
                             }`}
                             title={location && !isOff ? `Drag ${staff} to swap with another staff member` : ''}
                             onClick={(e) => {
-                              // Only handle clicks if not dragging and not on a draggable element
+                              // Only handle clicks for empty cells or when not dragging
                               if (!dragState && (!location || isOff)) {
                                 e.stopPropagation();
                                 console.log('Calendar cell clicked:', day, location, staff);
-                              }
-                            }}
-                            onMouseDown={(e) => {
-                              // Prevent text selection during drag
-                              if (location && !isOff) {
-                                e.preventDefault();
                               }
                             }}
                           >
