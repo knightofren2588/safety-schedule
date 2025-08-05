@@ -49,6 +49,12 @@ const MasterScheduleSystem = () => {
     const saved = localStorage.getItem('safetySchedule_earlyArrivalRequests');
     return saved ? JSON.parse(saved) : {};
   });
+
+  // Approved early arrival requests state
+  const [approvedEarlyArrivals, setApprovedEarlyArrivals] = useState(() => {
+    const saved = localStorage.getItem('safetySchedule_approvedEarlyArrivals');
+    return saved ? JSON.parse(saved) : {};
+  });
   
 
   
@@ -993,6 +999,45 @@ const MasterScheduleSystem = () => {
         ...prev,
         [dateKey]: [...(prev[dateKey] || []), request]
       };
+      localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Approve early arrival request
+  const approveEarlyArrival = (dateKey, requestIndex) => {
+    const request = earlyArrivalRequests[dateKey][requestIndex];
+    
+    // Add to approved list
+    setApprovedEarlyArrivals(prev => {
+      const updated = {
+        ...prev,
+        [dateKey]: [...(prev[dateKey] || []), { ...request, approvedAt: new Date().toISOString() }]
+      };
+      localStorage.setItem('safetySchedule_approvedEarlyArrivals', JSON.stringify(updated));
+      return updated;
+    });
+    
+    // Remove from pending requests
+    setEarlyArrivalRequests(prev => {
+      const updated = { ...prev };
+      updated[dateKey] = updated[dateKey].filter((_, index) => index !== requestIndex);
+      if (updated[dateKey].length === 0) {
+        delete updated[dateKey];
+      }
+      localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Deny early arrival request
+  const denyEarlyArrival = (dateKey, requestIndex) => {
+    setEarlyArrivalRequests(prev => {
+      const updated = { ...prev };
+      updated[dateKey] = updated[dateKey].filter((_, index) => index !== requestIndex);
+      if (updated[dateKey].length === 0) {
+        delete updated[dateKey];
+      }
       localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
       return updated;
     });
@@ -2709,49 +2754,13 @@ const MasterScheduleSystem = () => {
                               </span>
                               <div className="flex gap-2">
                                 <button
-                                  onClick={() => {
-                                    // Approve the request
-                                    const approvedRequest = {
-                                      ...request,
-                                      status: 'approved',
-                                      approvedAt: new Date().toISOString()
-                                    };
-                                    
-                                    setEarlyArrivalRequests(prev => {
-                                      const updated = {
-                                        ...prev,
-                                        [date]: prev[date].map((req, i) => i === index ? approvedRequest : req)
-                                      };
-                                      localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
-                                      return updated;
-                                    });
-                                    
-                                    alert(`Approved ${request.staff}'s early arrival request`);
-                                  }}
+                                  onClick={() => approveEarlyArrival(date, index)}
                                   className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
                                 >
                                   Approve
                                 </button>
                                 <button
-                                  onClick={() => {
-                                    // Deny the request
-                                    const deniedRequest = {
-                                      ...request,
-                                      status: 'denied',
-                                      deniedAt: new Date().toISOString()
-                                    };
-                                    
-                                    setEarlyArrivalRequests(prev => {
-                                      const updated = {
-                                        ...prev,
-                                        [date]: prev[date].map((req, i) => i === index ? deniedRequest : req)
-                                      };
-                                      localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
-                                      return updated;
-                                    });
-                                    
-                                    alert(`Denied ${request.staff}'s early arrival request`);
-                                  }}
+                                  onClick={() => denyEarlyArrival(date, index)}
                                   className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                                 >
                                   Deny
@@ -2847,6 +2856,82 @@ const MasterScheduleSystem = () => {
                             {typeof request === 'object' && request.reason && (
                               <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                 Reason: {request.reason}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Approved Early Arrival Log */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Approved Early Arrivals ({Object.values(approvedEarlyArrivals).flat().length})
+                </h4>
+                <div className="space-y-3">
+                  {Object.entries(approvedEarlyArrivals).map(([date, requests]) => (
+                    <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setApprovedEarlyArrivals(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_approvedEarlyArrivals', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {requests.map((request, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-green-700' : 'bg-green-100'} line-through`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                ✅ {request.staff} - {request.location}
+                              </span>
+                              <div className="flex gap-2">
+                                <span className="text-xs text-green-600 font-semibold">
+                                  APPROVED
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    setApprovedEarlyArrivals(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].filter((_, i) => i !== index)
+                                      };
+                                      if (updated[date].length === 0) {
+                                        delete updated[date];
+                                      }
+                                      localStorage.setItem('safetySchedule_approvedEarlyArrivals', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                            <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Requested: {request.earlyStart} (currently {request.currentStart})
+                            </div>
+                            <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Hours Available: {request.hoursAvailable}
+                            </div>
+                            {request.approvedAt && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Approved: {new Date(request.approvedAt).toLocaleString()}
                               </div>
                             )}
                           </div>
@@ -3102,7 +3187,7 @@ const MasterScheduleSystem = () => {
                           <div className="text-xs text-gray-500 border-t pt-2">
                             <div className="flex items-center gap-1">
                               <span>🏢 Operating Hours:</span>
-                              <span>{operatingHours.start} - {operatingHours.end}</span>
+                              <span>{getOperatingHours(shift.location, shift.day)?.start || 'N/A'} - {getOperatingHours(shift.location, shift.day)?.end || 'N/A'}</span>
                             </div>
                           </div>
                           {/* Early Arrival Request Button */}
