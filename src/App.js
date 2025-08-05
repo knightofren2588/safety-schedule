@@ -1046,21 +1046,8 @@ const MasterScheduleSystem = () => {
       return updated;
     });
     
-    // Also update the base schedule if needed
-    if (baseSchedule[request.weekNum]?.assignments?.[request.day]?.[request.location] === request.staff) {
-      setBaseSchedule(prev => {
-        const updated = { ...prev };
-        if (!updated[request.weekNum]) updated[request.weekNum] = { assignments: {} };
-        if (!updated[request.weekNum].assignments) updated[request.weekNum].assignments = {};
-        if (!updated[request.weekNum].assignments[request.day]) updated[request.weekNum].assignments[request.day] = {};
-        
-        // Update the assignment to reflect early arrival
-        updated[request.weekNum].assignments[request.day][request.location] = request.staff;
-        
-        saveDataWithSync('safetySchedule_baseSchedule', JSON.stringify(updated));
-        return updated;
-      });
-    }
+    // Update custom times to reflect early arrival (this is sufficient)
+    // Don't modify the base schedule as it should remain unchanged
   };
 
   // Deny early arrival request
@@ -3024,8 +3011,8 @@ const MasterScheduleSystem = () => {
           </div>
         </div>
 
-        {/* Individual Staff Selector */}
-        {viewMode === 'individual' && (
+        {/* Individual Staff Selector - Only show when not logged in as staff */}
+        {viewMode === 'individual' && !loggedInStaff && (
           <div className="flex justify-center mb-6">
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-2 flex gap-2`}>
               {['Kyle', 'Mia', 'Tyler', 'Mike'].map((staff) => (
@@ -3046,8 +3033,8 @@ const MasterScheduleSystem = () => {
           </div>
         )}
 
-        {/* Stats Cards - Master Only */}
-        {isAuthenticated && (
+        {/* Stats Cards - Master Only (hide when staff is logged in) */}
+        {isAuthenticated && !loggedInStaff && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             {Object.entries(baseHours).map(([staff, hours]) => (
               <div
@@ -3094,7 +3081,8 @@ const MasterScheduleSystem = () => {
           <div className="bg-gradient-to-r from-red-600 to-orange-600 p-6">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
               <Clock className="w-6 h-6" />
-              {viewMode === 'master' ? `${currentSchedule?.title || `Week ${currentWeek}`} - Base Schedule` : `${selectedStaffView}'s Schedule - Week ${currentWeek}`}
+              {viewMode === 'master' ? `${currentSchedule?.title || `Week ${currentWeek}`} - Base Schedule` : 
+               loggedInStaff ? `${loggedInStaff}'s Schedule - Week ${currentWeek}` : `${selectedStaffView}'s Schedule - Week ${currentWeek}`}
             </h2>
           </div>
 
@@ -3794,40 +3782,8 @@ const MasterScheduleSystem = () => {
                                           </div>
                                         </div>
                                       );
-                                    } else if (operatingHours && actualStartTime !== operatingHours.start) {
-                                      // Show request button for manager to request on behalf of staff
-                                      return (
-                                        <button
-                                          onClick={() => {
-                                            const request = {
-                                              staff: assignment,
-                                              location: location,
-                                              day: day,
-                                              weekNum: currentWeek,
-                                              currentStart: actualStartTime,
-                                              earlyStart: operatingHours.start,
-                                              hoursAvailable: calculateTimeDifference(operatingHours.start, actualStartTime),
-                                              reason: `Come in early at ${location}`,
-                                              timestamp: new Date().toISOString()
-                                            };
-                                            
-                                            setEarlyArrivalRequests(prev => {
-                                              const updated = {
-                                                ...prev,
-                                                [dateKey]: [...(prev[dateKey] || []), request]
-                                              };
-                                              localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
-                                              return updated;
-                                            });
-                                            
-                                            alert(`Early arrival request submitted for ${assignment}!`);
-                                          }}
-                                          className="w-full mt-2 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                                        >
-                                          📅 Request {assignment} come in at {operatingHours.start}
-                                        </button>
-                                      );
                                     }
+                                    // Early arrival requests are only available to individual team members, not managers
                                     return null;
                                   })()}
                                 </div>
@@ -3839,7 +3795,7 @@ const MasterScheduleSystem = () => {
                   );
                 })}
               </div>
-            ) : (
+            ) : !loggedInStaff ? (
               <div className="space-y-4">
                 {/* Week Navigation for Individual View */}
                 <div className="flex items-center justify-between mb-4">
@@ -4031,7 +3987,7 @@ const MasterScheduleSystem = () => {
                   </div>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
