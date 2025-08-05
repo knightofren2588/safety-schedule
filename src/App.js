@@ -2651,18 +2651,18 @@ const MasterScheduleSystem = () => {
 
         {/* Week Navigation */}
         <div className="flex justify-center mt-6">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-2 flex gap-2`}>
-            {[1, 2, 3, 4].map(week => (
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-2 flex gap-2 overflow-x-auto`}>
+            {[...Array(TOTAL_WEEKS)].map((_, i) => (
               <button
-                key={week}
-                onClick={() => setCurrentWeek(week)}
+                key={i + 1}
+                onClick={() => setCurrentWeek(i + 1)}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  currentWeek === week
+                  currentWeek === i + 1
                     ? 'bg-red-600 text-white shadow-lg transform scale-105'
                     : `${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`
                 }`}
               >
-                Week {week}
+                Week {i + 1}
               </button>
             ))}
           </div>
