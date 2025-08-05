@@ -892,7 +892,20 @@ const MasterScheduleSystem = () => {
   };
 
   const getStaffSchedule = (staff, weekNum) => {
+    // Safety check for undefined week
+    if (!baseSchedule[weekNum]) {
+      console.log('⚠️ getStaffSchedule: Week', weekNum, 'not found in baseSchedule');
+      return [];
+    }
+    
     const assignments = baseSchedule[weekNum].assignments;
+    
+    // Safety check for undefined assignments
+    if (!assignments) {
+      console.log('⚠️ getStaffSchedule: No assignments found for week', weekNum);
+      return [];
+    }
+    
     const staffShifts = [];
     
     days.forEach(day => {
@@ -914,7 +927,20 @@ const MasterScheduleSystem = () => {
   };
 
   const calculateBaseHours = (weekNum) => {
+    // Safety check for undefined week
+    if (!baseSchedule[weekNum]) {
+      console.log('⚠️ calculateBaseHours: Week', weekNum, 'not found in baseSchedule');
+      return { Kyle: 0, Mia: 0, Tyler: 0, Mike: 0 };
+    }
+    
     const assignments = baseSchedule[weekNum].assignments;
+    
+    // Safety check for undefined assignments
+    if (!assignments) {
+      console.log('⚠️ calculateBaseHours: No assignments found for week', weekNum);
+      return { Kyle: 0, Mia: 0, Tyler: 0, Mike: 0 };
+    }
+    
     const hours = { Kyle: 0, Mia: 0, Tyler: 0, Mike: 0 };
     
     days.forEach(day => {
@@ -933,19 +959,27 @@ const MasterScheduleSystem = () => {
   };
 
   const assignBaseShift = (day, location, staff) => {
-    setBaseSchedule(prev => ({
-      ...prev,
-      [currentWeek]: {
-        ...prev[currentWeek],
-        assignments: {
-          ...prev[currentWeek].assignments,
-          [day]: {
-            ...prev[currentWeek].assignments[day],
-            [location]: staff
+    setBaseSchedule(prev => {
+      // Safety check for undefined week
+      if (!prev[currentWeek]) {
+        console.log('⚠️ assignBaseShift: Week', currentWeek, 'not found in baseSchedule');
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        [currentWeek]: {
+          ...prev[currentWeek],
+          assignments: {
+            ...prev[currentWeek].assignments,
+            [day]: {
+              ...prev[currentWeek].assignments[day],
+              [location]: staff
+            }
           }
         }
-      }
-    }));
+      };
+    });
   };
 
   // Roster management functions
@@ -1638,7 +1672,7 @@ const MasterScheduleSystem = () => {
                         const isOff = isStaffOff(staff, day, currentWeek);
                         
                         // Get staff's assignment for this day
-                        const location = baseSchedule[currentWeek]?.assignments[day] ? 
+                        const location = baseSchedule[currentWeek]?.assignments?.[day] ? 
                           Object.keys(baseSchedule[currentWeek].assignments[day]).find(loc => 
                             loc !== 'undefined' && loc !== undefined && 
                             baseSchedule[currentWeek].assignments[day][loc] === staff
@@ -2970,6 +3004,9 @@ const MasterScheduleSystem = () => {
                                         const updatedBaseSchedule = { ...baseSchedule };
                                         if (!updatedBaseSchedule[currentWeek]) {
                                           updatedBaseSchedule[currentWeek] = { assignments: {} };
+                                        }
+                                        if (!updatedBaseSchedule[currentWeek].assignments) {
+                                          updatedBaseSchedule[currentWeek].assignments = {};
                                         }
                                         if (!updatedBaseSchedule[currentWeek].assignments[day]) {
                                           updatedBaseSchedule[currentWeek].assignments[day] = {};
