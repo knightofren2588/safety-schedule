@@ -1036,6 +1036,41 @@ const MasterScheduleSystem = () => {
       localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
       return updated;
     });
+    
+    // Update the actual schedule to reflect early arrival
+    const weekDates = getWeekDates(request.weekNum);
+    const dayIndex = days.indexOf(request.day);
+    const date = weekDates[dayIndex];
+    
+    // Update custom times to reflect early arrival
+    const shiftKey = `${request.weekNum}-${request.day}-${request.location}`;
+    setCustomTimes(prev => {
+      const updated = {
+        ...prev,
+        [shiftKey]: {
+          start: request.earlyStart,
+          end: request.currentStart // Keep the original end time
+        }
+      };
+      localStorage.setItem('safetySchedule_customTimes', JSON.stringify(updated));
+      return updated;
+    });
+    
+    // Also update the base schedule if needed
+    if (baseSchedule[request.weekNum]?.assignments?.[request.day]?.[request.location] === request.staff) {
+      setBaseSchedule(prev => {
+        const updated = { ...prev };
+        if (!updated[request.weekNum]) updated[request.weekNum] = { assignments: {} };
+        if (!updated[request.weekNum].assignments) updated[request.weekNum].assignments = {};
+        if (!updated[request.weekNum].assignments[request.day]) updated[request.weekNum].assignments[request.day] = {};
+        
+        // Update the assignment to reflect early arrival
+        updated[request.weekNum].assignments[request.day][request.location] = request.staff;
+        
+        saveDataWithSync('safetySchedule_baseSchedule', JSON.stringify(updated));
+        return updated;
+      });
+    }
   };
 
   // Deny early arrival request
@@ -1047,6 +1082,31 @@ const MasterScheduleSystem = () => {
         delete updated[dateKey];
       }
       localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Remove approved early arrival and revert schedule
+  const removeApprovedEarlyArrival = (dateKey, requestIndex) => {
+    const request = approvedEarlyArrivals[dateKey][requestIndex];
+    
+    // Remove from approved list
+    setApprovedEarlyArrivals(prev => {
+      const updated = { ...prev };
+      updated[dateKey] = updated[dateKey].filter((_, index) => index !== requestIndex);
+      if (updated[dateKey].length === 0) {
+        delete updated[dateKey];
+      }
+      localStorage.setItem('safetySchedule_approvedEarlyArrivals', JSON.stringify(updated));
+      return updated;
+    });
+    
+    // Revert the custom times to original
+    const shiftKey = `${request.weekNum}-${request.day}-${request.location}`;
+    setCustomTimes(prev => {
+      const updated = { ...prev };
+      delete updated[shiftKey]; // Remove the custom time to revert to default
+      localStorage.setItem('safetySchedule_customTimes', JSON.stringify(updated));
       return updated;
     });
   };
@@ -1101,7 +1161,26 @@ const MasterScheduleSystem = () => {
 
   const getCustomShiftTime = (day, location, weekNum) => {
     const shiftKey = `${weekNum}-${day}-${location}`;
-    return customTimes[shiftKey];
+    const customTime = customTimes[shiftKey];
+    
+    // Check if there's an approved early arrival for this day/location
+    const weekDates = getWeekDates(weekNum);
+    const dayIndex = days.indexOf(day);
+    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+    
+    const approvedEarlyArrival = approvedEarlyArrivals[dateKey]?.find(
+      req => req.day === day && req.location === location
+    );
+    
+    // If there's an approved early arrival, use that time
+    if (approvedEarlyArrival) {
+      return {
+        start: approvedEarlyArrival.earlyStart,
+        end: approvedEarlyArrival.currentStart
+      };
+    }
+    
+    return customTime;
   };
 
 
@@ -2912,19 +2991,7 @@ const MasterScheduleSystem = () => {
                                   APPROVED
                                 </span>
                                 <button
-                                  onClick={() => {
-                                    setApprovedEarlyArrivals(prev => {
-                                      const updated = {
-                                        ...prev,
-                                        [date]: prev[date].filter((_, i) => i !== index)
-                                      };
-                                      if (updated[date].length === 0) {
-                                        delete updated[date];
-                                      }
-                                      localStorage.setItem('safetySchedule_approvedEarlyArrivals', JSON.stringify(updated));
-                                      return updated;
-                                    });
-                                  }}
+                                  onClick={() => removeApprovedEarlyArrival(date, index)}
                                   className="text-red-500 hover:text-red-700 text-xs"
                                 >
                                   Remove
