@@ -152,73 +152,36 @@ const MasterScheduleSystem = () => {
 
   // Drag and drop handlers for calendar staff swaps
   const handleDragStart = (e, staff, day, location) => {
-    e.stopPropagation();
-    e.preventDefault();
+    console.log('🎯 DRAG START:', { staff, day, location });
     
-    const staffIsOff = isStaffOff(staff, day, currentWeek);
-    console.log('=== DRAG START DEBUG ===');
-    console.log('Staff:', staff, 'Day:', day, 'Location:', location, 'Week:', currentWeek);
-    console.log('Is staff off:', staffIsOff);
-    console.log('Base schedule for week:', baseSchedule[currentWeek]);
-    console.log('Staff info:', staffInfo[staff]);
-    console.log('Event target:', e.target);
-    console.log('Draggable attribute:', e.target.draggable);
-    
-    // Validate all required data
+    // Basic validation
     if (!staff || !day || !location) {
-      console.log('❌ Drag start failed - missing required data');
-      console.log('Staff exists:', !!staff, 'Day exists:', !!day, 'Location exists:', !!location);
+      console.log('❌ Drag start failed - missing data');
       return;
     }
     
+    const staffIsOff = isStaffOff(staff, day, currentWeek);
     if (staffIsOff) {
       console.log('❌ Drag start failed - staff is off');
       return;
     }
     
-    if (location === 'undefined' || location === undefined) {
-      console.log('❌ Drag start failed - location is undefined');
-      return;
-    }
-    
+    // Set drag state
     const dragData = { staff, day, location, week: currentWeek };
     setDragState(dragData);
-    console.log('✅ Drag started successfully:', dragData);
+    console.log('✅ Drag started:', dragData);
     
-    // Set drag image and data
+    // Set drag data
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', `${staff}-${day}-${location}`);
-    e.dataTransfer.setData('application/json', JSON.stringify(dragData));
-    
-    // Set drag image
-    const dragImage = e.target.cloneNode(true);
-    dragImage.style.opacity = '0.5';
-    document.body.appendChild(dragImage);
-    e.dataTransfer.setDragImage(dragImage, 0, 0);
-    setTimeout(() => document.body.removeChild(dragImage), 0);
+    e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
   };
 
   const handleDragOver = (e, staff, day, location) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Only set drag over state if there's a valid drop target
     if (staff && day && location) {
-      console.log('=== DRAG OVER DEBUG ===');
-      console.log('Drag over target:', { staff, day, location });
-      console.log('Current drag state:', dragState);
-      
-      // Only allow dropping on cells with staff assigned (not empty cells)
-      if (staff !== 'undefined' && staff !== undefined) {
-        setDragOverState({ staff, day, location, week: currentWeek });
-        console.log('✅ Valid drop target - setting drag over state');
-      } else {
-        console.log('❌ Invalid drop target - empty cell');
-        setDragOverState(null);
-      }
-    } else {
-      console.log('❌ Invalid drag over - missing data');
-      setDragOverState(null);
+      setDragOverState({ staff, day, location, week: currentWeek });
     }
   };
 
@@ -226,69 +189,39 @@ const MasterScheduleSystem = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('=== DROP DEBUG ===');
-    console.log('Target:', { targetStaff, targetDay, targetLocation });
+    console.log('🎯 DROP:', { targetStaff, targetDay, targetLocation });
     console.log('Drag state:', dragState);
-    console.log('Current week:', currentWeek);
-    console.log('Base schedule before:', baseSchedule[currentWeek]);
     
     if (!dragState) {
-      console.log('❌ Drop failed - no drag state');
+      console.log('❌ No drag state');
       return;
     }
     
     const { staff: sourceStaff, day: sourceDay, location: sourceLocation } = dragState;
     
-    console.log('Drop operation:', sourceStaff, sourceDay, sourceLocation, '->', targetStaff, targetDay, targetLocation);
-    
-    // Safety check for undefined targetLocation
-    if (!targetLocation) {
-      console.log('❌ Cannot drop - targetLocation is undefined');
-      setDragState(null);
-      setDragOverState(null);
-      return;
-    }
-    
-    // Don't allow dropping on the same location
+    // Don't drop on same location
     if (sourceDay === targetDay && sourceLocation === targetLocation) {
-      console.log('❌ Cannot drop on same location');
+      console.log('❌ Same location drop');
       setDragState(null);
       setDragOverState(null);
       return;
     }
     
-    // Don't allow dropping on empty cells (no staff assigned)
-    if (!targetStaff) {
-      console.log('❌ Cannot drop on empty cell');
-      setDragState(null);
-      setDragOverState(null);
-      return;
-    }
-    
-    // Perform the staff swap
+    // Perform the swap
     setBaseSchedule(prev => {
-      console.log('=== UPDATING SCHEDULE ===');
-      console.log('Previous schedule:', prev);
-      
       const updated = { ...prev };
       
-      // Ensure the week exists
+      // Ensure week exists
       if (!updated[currentWeek]) {
-        console.log('Creating new week:', currentWeek);
         updated[currentWeek] = { assignments: {} };
       }
       if (!updated[currentWeek].assignments) {
-        console.log('Creating assignments object for week:', currentWeek);
         updated[currentWeek].assignments = {};
       }
-      
-      console.log('Before swap - source assignment:', updated[currentWeek].assignments[sourceDay]?.[sourceLocation]);
-      console.log('Before swap - target assignment:', updated[currentWeek].assignments[targetDay]?.[targetLocation]);
       
       // Remove source assignment
       if (updated[currentWeek].assignments[sourceDay]?.[sourceLocation]) {
         delete updated[currentWeek].assignments[sourceDay][sourceLocation];
-        console.log('✅ Removed source assignment');
       }
       
       // Add target assignment
@@ -296,18 +229,16 @@ const MasterScheduleSystem = () => {
         updated[currentWeek].assignments[targetDay] = {};
       }
       updated[currentWeek].assignments[targetDay][targetLocation] = sourceStaff;
-      console.log('✅ Added target assignment:', sourceStaff, 'to', targetDay, targetLocation);
       
-      // If target had a staff member, swap them to the source location
+      // If target had staff, swap them to source
       if (targetStaff && targetStaff !== sourceStaff) {
         if (!updated[currentWeek].assignments[sourceDay]) {
           updated[currentWeek].assignments[sourceDay] = {};
         }
         updated[currentWeek].assignments[sourceDay][sourceLocation] = targetStaff;
-        console.log('✅ Swapped target staff:', targetStaff, 'to source location');
       }
       
-      console.log('✅ Final updated schedule:', updated[currentWeek]);
+      console.log('✅ Schedule updated');
       saveDataWithSync('safetySchedule_baseSchedule', updated);
       return updated;
     });
@@ -315,13 +246,6 @@ const MasterScheduleSystem = () => {
     // Clear drag states
     setDragState(null);
     setDragOverState(null);
-    
-    console.log('✅ Staff swap completed - localStorage saved');
-    
-    // Force re-render
-    setTimeout(() => {
-      setCurrentWeek(prev => prev);
-    }, 100);
   };
 
   const handleDragEnd = (e) => {
