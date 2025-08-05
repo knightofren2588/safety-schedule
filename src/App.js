@@ -472,8 +472,8 @@ const MasterScheduleSystem = () => {
   
   // Building operating hours (when buildings are actually open)
   const buildingOperatingHours = {
-    'Short North': { start: '7:30a', end: '7:30p' },
-    'KL': { start: '7:30a', end: '7:30p' },
+    'Short North': { start: '8:00a', end: '7:00p' },
+    'KL': { start: '8:00a', end: '7:00p' },
     'Safepoint': { start: '11:00a', end: '7:00p' }
   };
   
@@ -1110,7 +1110,13 @@ const MasterScheduleSystem = () => {
       return null;
     }
     
+    // Saturday hours for all locations
     if (day === 'Saturday') {
+      if (location === 'Short North' || location === 'KL') {
+        return { start: '9:00a', end: '3:00p' };
+      } else if (location === 'Safepoint') {
+        return { start: '9:00a', end: '2:00p' };
+      }
       return saturdayHours[location] || null;
     }
     
@@ -1118,12 +1124,15 @@ const MasterScheduleSystem = () => {
     if (location === 'Safepoint') {
       if (day === 'Monday') {
         return null; // Safepoint closed on Monday
-      } else if (day === 'Saturday') {
-        return { start: '9:00a', end: '2:00p' };
       } else {
         // Tuesday - Friday
         return { start: '11:00a', end: '7:00p' };
       }
+    }
+    
+    // Monday - Friday hours for Short North and KL
+    if (location === 'Short North' || location === 'KL') {
+      return { start: '8:00a', end: '7:00p' };
     }
     
     return buildingOperatingHours[location] || null;
