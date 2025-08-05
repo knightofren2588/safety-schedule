@@ -463,12 +463,20 @@ const MasterScheduleSystem = () => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const locations = ['Short North', 'KL', 'Safepoint'];
 
-  // Shift hours configuration
+  // Shift hours configuration (staff shift times)
   const baseShiftHours = {
     'Short North': { start: '11:00a', end: '7:30p', duration: 8.5 },
     'KL': { start: '11:00a', end: '7:30p', duration: 8.5 },
     'Safepoint': { start: '11:00a', end: '7:00p', duration: 8.0 }
   };
+  
+  // Building operating hours (when buildings are actually open)
+  const buildingOperatingHours = {
+    'Short North': { start: '7:30a', end: '7:30p' },
+    'KL': { start: '7:30a', end: '7:30p' },
+    'Safepoint': { start: '7:30a', end: '7:00p' }
+  };
+  
   const saturdayHours = {
     'Short North': { start: '9:00a', end: '3:30p', duration: 6.5 },
     'KL': { start: '9:00a', end: '3:30p', duration: 6.5 },
@@ -1057,7 +1065,7 @@ const MasterScheduleSystem = () => {
     if (day === 'Saturday') {
       return saturdayHours[location] || null;
     }
-    return baseShiftHours[location] || null;
+    return buildingOperatingHours[location] || null;
   };
 
   const getShiftDuration = (day, location, weekNum) => {
