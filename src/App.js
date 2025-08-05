@@ -148,33 +148,49 @@ const MasterScheduleSystem = () => {
   // Drag and drop handlers for calendar staff swaps
   const handleDragStart = (e, staff, day, location) => {
     e.stopPropagation();
+    e.preventDefault();
+    
     const staffIsOff = isStaffOff(staff, day, currentWeek);
     console.log('=== DRAG START DEBUG ===');
     console.log('Staff:', staff, 'Day:', day, 'Location:', location, 'Week:', currentWeek);
     console.log('Is staff off:', staffIsOff);
     console.log('Base schedule for week:', baseSchedule[currentWeek]);
     console.log('Staff info:', staffInfo[staff]);
+    console.log('Event target:', e.target);
+    console.log('Draggable attribute:', e.target.draggable);
     
-    if (staff && day && location && !staffIsOff) {
-      const dragData = { staff, day, location, week: currentWeek };
-      setDragState(dragData);
-      console.log('✅ Drag started successfully:', dragData);
-      
-      // Set drag image and data
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', `${staff}-${day}-${location}`);
-      e.dataTransfer.setData('application/json', JSON.stringify(dragData));
-      
-      // Set drag image
-      const dragImage = e.target.cloneNode(true);
-      dragImage.style.opacity = '0.5';
-      document.body.appendChild(dragImage);
-      e.dataTransfer.setDragImage(dragImage, 0, 0);
-      setTimeout(() => document.body.removeChild(dragImage), 0);
-    } else {
-      console.log('❌ Drag start failed - missing data or staff is off');
-      console.log('Staff exists:', !!staff, 'Day exists:', !!day, 'Location exists:', !!location, 'Not off:', !staffIsOff);
+    // Validate all required data
+    if (!staff || !day || !location) {
+      console.log('❌ Drag start failed - missing required data');
+      console.log('Staff exists:', !!staff, 'Day exists:', !!day, 'Location exists:', !!location);
+      return;
     }
+    
+    if (staffIsOff) {
+      console.log('❌ Drag start failed - staff is off');
+      return;
+    }
+    
+    if (location === 'undefined' || location === undefined) {
+      console.log('❌ Drag start failed - location is undefined');
+      return;
+    }
+    
+    const dragData = { staff, day, location, week: currentWeek };
+    setDragState(dragData);
+    console.log('✅ Drag started successfully:', dragData);
+    
+    // Set drag image and data
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', `${staff}-${day}-${location}`);
+    e.dataTransfer.setData('application/json', JSON.stringify(dragData));
+    
+    // Set drag image
+    const dragImage = e.target.cloneNode(true);
+    dragImage.style.opacity = '0.5';
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    setTimeout(() => document.body.removeChild(dragImage), 0);
   };
 
   const handleDragOver = (e, staff, day, location) => {
@@ -618,6 +634,39 @@ const MasterScheduleSystem = () => {
         }
       } else {
         console.log('✅ Week', currentWeek, 'already exists in baseSchedule');
+      }
+      
+      // Generate missing weeks in the current range (current week ± 2 weeks)
+      const weekRange = [];
+      for (let week = Math.max(1, currentWeek - 2); week <= Math.min(TOTAL_WEEKS, currentWeek + 2); week++) {
+        if (!baseSchedule[week]) {
+          weekRange.push(week);
+        }
+      }
+      
+      if (weekRange.length > 0) {
+        console.log('🔄 Generating missing weeks in range:', weekRange);
+        setBaseSchedule(prev => {
+          const updated = { ...prev };
+          weekRange.forEach(week => {
+            try {
+              const newSchedule = generateWeekSchedule(week);
+              if (newSchedule && newSchedule.assignments) {
+                updated[week] = newSchedule;
+                console.log('✅ Generated week:', week);
+              }
+            } catch (error) {
+              console.error('❌ Error generating week:', week, error);
+              updated[week] = {
+                title: `Week ${week}`,
+                saturdayStaff: 'Kyle',
+                assignments: {}
+              };
+            }
+          });
+          saveDataWithSync('safetySchedule_baseSchedule', updated);
+          return updated;
+        });
       }
     } catch (error) {
       console.error('❌ Error generating missing week:', error);
@@ -1724,31 +1773,62 @@ const MasterScheduleSystem = () => {
                         const isOff = isStaffOff(staff, day, currentWeek);
                         
                         // Get staff's assignment for this day
-                        const location = baseSchedule[currentWeek]?.assignments?.[day] ? 
-                          Object.keys(baseSchedule[currentWeek].assignments[day]).find(loc => 
-                            loc !== 'undefined' && loc !== undefined && 
-                            baseSchedule[currentWeek].assignments[day][loc] === staff
-                          ) : null;
+                        const assignments = baseSchedule[currentWeek]?.assignments?.[day];
+                        let location = null;
+                        
+                        if (assignments) {
+                          // Find the location where this staff is assigned
+                          location = Object.keys(assignments).find(loc => {
+                            const assignedStaff = assignments[loc];
+                            return loc && loc !== 'undefined' && loc !== undefined && 
+                                   assignedStaff && assignedStaff === staff;
+                          });
+                        }
                         
                         // Debug logging for assignment detection
                         if (staff === 'Kyle' && day === 'Wednesday') {
                           console.log('Kyle Wednesday assignment check:', {
                             currentWeek,
                             day,
-                            assignments: baseSchedule[currentWeek]?.assignments[day],
+                            assignments: assignments,
                             foundLocation: location,
-                            staff
+                            staff,
+                            allLocations: assignments ? Object.keys(assignments) : []
                           });
+                        }
+                        
+                        // Additional debug for undefined locations
+                        if (location === 'undefined' || location === undefined) {
+                          console.log('⚠️ Undefined location detected:', {
+                            staff,
+                            day,
+                            currentWeek,
+                            assignments: assignments
+                          });
+                          location = null;
                         }
                         
                         const shiftDuration = location ? getShiftDuration(day, location, currentWeek) : 0;
                         const customTime = location ? getCustomShiftTime(day, location, currentWeek) : null;
                         const operatingHours = location ? getOperatingHours(location, day) : null;
                         
+                        // Debug drag and drop setup
+                        const isDraggable = location && !isOff;
+                        if (isDraggable && staff === 'Kyle' && day === 'Wednesday') {
+                          console.log('🎯 Draggable cell setup:', {
+                            staff,
+                            day,
+                            location,
+                            isOff,
+                            isDraggable,
+                            draggable: isDraggable
+                          });
+                        }
+                        
                         return (
                           <div 
                             key={dayIndex} 
-                            draggable={location && !isOff}
+                            draggable={isDraggable}
                             onDragStart={(e) => handleDragStart(e, staff, day, location)}
                             onDragOver={(e) => handleDragOver(e, staff, day, location)}
                             onDrop={(e) => handleDrop(e, staff, day, location)}
