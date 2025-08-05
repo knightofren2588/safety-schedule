@@ -22,7 +22,7 @@ const MasterScheduleSystem = () => {
     const startDate = new Date(2024, 7, 4); // August 4th, 2024
     const diffTime = today.getTime() - startDate.getTime();
     const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
-    return Math.max(1, Math.min(4, diffWeeks + 1)); // Keep within 1-4 range
+    return Math.max(1, Math.min(TOTAL_WEEKS, diffWeeks + 1)); // Allow all 52 weeks
   });
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showPickupShifts, setShowPickupShifts] = useState(false);
@@ -1825,14 +1825,37 @@ const MasterScheduleSystem = () => {
                           });
                         }
                         
+                        // Debug all draggable cells
+                        if (isDraggable) {
+                          console.log('🎯 All draggable cells:', {
+                            staff,
+                            day,
+                            location,
+                            isOff,
+                            isDraggable
+                          });
+                        }
+                        
                         return (
                           <div 
                             key={dayIndex} 
                             draggable={isDraggable}
-                            onDragStart={(e) => handleDragStart(e, staff, day, location)}
-                            onDragOver={(e) => handleDragOver(e, staff, day, location)}
-                            onDrop={(e) => handleDrop(e, staff, day, location)}
-                            onDragEnd={handleDragEnd}
+                            onDragStart={(e) => {
+                              console.log('🎯 DRAG START EVENT TRIGGERED:', { staff, day, location });
+                              handleDragStart(e, staff, day, location);
+                            }}
+                            onDragOver={(e) => {
+                              console.log('🎯 DRAG OVER EVENT TRIGGERED:', { staff, day, location });
+                              handleDragOver(e, staff, day, location);
+                            }}
+                            onDrop={(e) => {
+                              console.log('🎯 DROP EVENT TRIGGERED:', { staff, day, location });
+                              handleDrop(e, staff, day, location);
+                            }}
+                            onDragEnd={(e) => {
+                              console.log('🎯 DRAG END EVENT TRIGGERED');
+                              handleDragEnd(e);
+                            }}
                             onDragEnter={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -3276,6 +3299,87 @@ const MasterScheduleSystem = () => {
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Week Navigation for Individual View */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => setCurrentWeek(Math.max(1, currentWeek - 1))}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                    >
+                      ← Previous Week
+                    </button>
+                    <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      Week {currentWeek} of {TOTAL_WEEKS}
+                    </span>
+                    <button
+                      onClick={() => setCurrentWeek(Math.min(TOTAL_WEEKS, currentWeek + 1))}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                    >
+                      Next Week →
+                    </button>
+                  </div>
+                  
+                  {/* Month Navigation for Individual View */}
+                  <div className="flex items-center gap-2">
+                    <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                      {currentMonthYear.month} {currentMonthYear.year}
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setCurrentWeek(1)}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 1 && currentWeek <= 4 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        Aug
+                      </button>
+                      <button
+                        onClick={() => setCurrentWeek(5)}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 5 && currentWeek <= 8 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        Sep
+                      </button>
+                      <button
+                        onClick={() => setCurrentWeek(9)}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 9 && currentWeek <= 13 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        Oct
+                      </button>
+                      <button
+                        onClick={() => setCurrentWeek(14)}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 14 && currentWeek <= 17 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        Nov
+                      </button>
+                      <button
+                        onClick={() => setCurrentWeek(18)}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 18 && currentWeek <= 22 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                      >
+                        Dec
+                      </button>
+                      
+                      {/* Dropdown for months past December */}
+                      <select
+                        onChange={(e) => {
+                          const selectedWeek = parseInt(e.target.value);
+                          if (selectedWeek > 0) {
+                            setCurrentWeek(selectedWeek);
+                          }
+                        }}
+                        value=""
+                        className={`px-2 py-1 text-xs rounded border ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-700 border-gray-300'}`}
+                      >
+                        <option value="">More Months...</option>
+                        <option value="23">Jan 2025 (Week 23-26)</option>
+                        <option value="27">Feb 2025 (Week 27-30)</option>
+                        <option value="31">Mar 2025 (Week 31-35)</option>
+                        <option value="36">Apr 2025 (Week 36-39)</option>
+                        <option value="40">May 2025 (Week 40-43)</option>
+                        <option value="44">Jun 2025 (Week 44-47)</option>
+                        <option value="48">Jul 2025 (Week 48-52)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className={`p-4 rounded-lg ${staffInfo[selectedStaffView].color} text-white`}>
                   <h3 className="text-lg font-semibold mb-2">{selectedStaffView}'s Schedule - Week {currentWeek}</h3>
                   <div className="text-sm opacity-90">
