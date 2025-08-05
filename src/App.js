@@ -3250,37 +3250,102 @@ const MasterScheduleSystem = () => {
                               <span>{getOperatingHours(shift.location, shift.day)?.start || 'N/A'} - {getOperatingHours(shift.location, shift.day)?.end || 'N/A'}</span>
                             </div>
                           </div>
-                          {/* Early Arrival Request Button */}
-                          {actualStartTime !== operatingHours.start && (
-                            <button
-                              onClick={() => {
-                                const dateKey = date.toISOString().split('T')[0];
-                                const request = {
-                                  staff: loggedInStaff,
-                                  location: shift.location,
-                                  day: shift.day,
-                                  currentStart: actualStartTime,
-                                  requestedStart: operatingHours.start,
-                                  date: dateKey,
-                                  timestamp: new Date().toISOString()
-                                };
-                                
-                                setEarlyArrivalRequests(prev => {
-                                  const updated = {
-                                    ...prev,
-                                    [dateKey]: [...(prev[dateKey] || []), request]
-                                  };
-                                  localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
-                                  return updated;
-                                });
-                                
-                                alert('Early arrival request submitted!');
-                              }}
-                              className="w-full mt-2 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                            >
-                              📅 Offer to come in at {operatingHours.start}
-                            </button>
-                          )}
+                                                      {/* Early Arrival Request/Approval Section */}
+                            {(() => {
+                              const weekDates = getWeekDates(currentWeek);
+                              const dayIndex = days.indexOf(shift.day);
+                              const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+                              
+                              // Check if there's a pending request for this staff/day
+                              const pendingRequest = earlyArrivalRequests[dateKey]?.find(
+                                req => req.staff === loggedInStaff && req.day === shift.day
+                              );
+                              
+                              // Check if there's an approved early arrival
+                              const approvedEarlyArrival = approvedEarlyArrivals[dateKey]?.find(
+                                req => req.staff === loggedInStaff && req.day === shift.day
+                              );
+                              
+                              if (approvedEarlyArrival) {
+                                // Show approved early arrival with revert option
+                                return (
+                                  <div className="mt-2 p-2 bg-green-100 rounded border border-green-300">
+                                    <div className="text-xs text-green-800 font-semibold">
+                                      ✅ Approved Early Arrival
+                                    </div>
+                                    <div className="text-xs text-green-700">
+                                      {approvedEarlyArrival.earlyStart} - {approvedEarlyArrival.currentStart}
+                                    </div>
+                                    <button
+                                      onClick={() => removeApprovedEarlyArrival(dateKey, approvedEarlyArrivals[dateKey].findIndex(req => req.staff === loggedInStaff && req.day === shift.day))}
+                                      className="mt-1 w-full px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                    >
+                                      Revert to Original Time
+                                    </button>
+                                  </div>
+                                );
+                              } else if (pendingRequest) {
+                                // Show pending request with approve/deny options
+                                return (
+                                  <div className="mt-2 p-2 bg-yellow-100 rounded border border-yellow-300">
+                                    <div className="text-xs text-yellow-800 font-semibold">
+                                      ⏳ Early Arrival Requested
+                                    </div>
+                                    <div className="text-xs text-yellow-700">
+                                      {pendingRequest.earlyStart} - {pendingRequest.currentStart}
+                                    </div>
+                                    <div className="flex gap-1 mt-1">
+                                      <button
+                                        onClick={() => approveEarlyArrival(dateKey, earlyArrivalRequests[dateKey].findIndex(req => req.staff === loggedInStaff && req.day === shift.day))}
+                                        className="flex-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                      >
+                                        Approve
+                                      </button>
+                                      <button
+                                        onClick={() => denyEarlyArrival(dateKey, earlyArrivalRequests[dateKey].findIndex(req => req.staff === loggedInStaff && req.day === shift.day))}
+                                        className="flex-1 px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                      >
+                                        Deny
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              } else if (actualStartTime !== operatingHours.start) {
+                                // Show request button
+                                return (
+                                  <button
+                                    onClick={() => {
+                                      const request = {
+                                        staff: loggedInStaff,
+                                        location: shift.location,
+                                        day: shift.day,
+                                        weekNum: currentWeek,
+                                        currentStart: actualStartTime,
+                                        earlyStart: operatingHours.start,
+                                        hoursAvailable: calculateTimeDifference(operatingHours.start, actualStartTime),
+                                        reason: `Come in early at ${shift.location}`,
+                                        timestamp: new Date().toISOString()
+                                      };
+                                      
+                                      setEarlyArrivalRequests(prev => {
+                                        const updated = {
+                                          ...prev,
+                                          [dateKey]: [...(prev[dateKey] || []), request]
+                                        };
+                                        localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                                        return updated;
+                                      });
+                                      
+                                      alert('Early arrival request submitted!');
+                                    }}
+                                    className="w-full mt-2 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                  >
+                                    📅 Offer to come in at {operatingHours.start}
+                                  </button>
+                                );
+                              }
+                              return null;
+                            })()}
                         </div>
                       </div>
                     );
@@ -3664,6 +3729,107 @@ const MasterScheduleSystem = () => {
                                       }
                                     })()}
                                   </div>
+                                  
+                                  {/* Early Arrival Request/Approval Section for Master View */}
+                                  {assignment && (() => {
+                                    const weekDates = getWeekDates(currentWeek);
+                                    const dayIndex = days.indexOf(day);
+                                    const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
+                                    
+                                    // Check if there's a pending request for this staff/day
+                                    const pendingRequest = earlyArrivalRequests[dateKey]?.find(
+                                      req => req.staff === assignment && req.day === day
+                                    );
+                                    
+                                    // Check if there's an approved early arrival
+                                    const approvedEarlyArrival = approvedEarlyArrivals[dateKey]?.find(
+                                      req => req.staff === assignment && req.day === day
+                                    );
+                                    
+                                    const operatingHours = getOperatingHours(location, day);
+                                    const customTime = getCustomShiftTime(day, location, currentWeek);
+                                    const actualStartTime = customTime?.start || shiftHours.start;
+                                    
+                                    if (approvedEarlyArrival) {
+                                      // Show approved early arrival with revert option
+                                      return (
+                                        <div className="mt-2 p-2 bg-green-100 rounded border border-green-300">
+                                          <div className="text-xs text-green-800 font-semibold">
+                                            ✅ {assignment} - Approved Early Arrival
+                                          </div>
+                                          <div className="text-xs text-green-700">
+                                            {approvedEarlyArrival.earlyStart} - {approvedEarlyArrival.currentStart}
+                                          </div>
+                                          <button
+                                            onClick={() => removeApprovedEarlyArrival(dateKey, approvedEarlyArrivals[dateKey].findIndex(req => req.staff === assignment && req.day === day))}
+                                            className="mt-1 w-full px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                          >
+                                            Revert to Original Time
+                                          </button>
+                                        </div>
+                                      );
+                                    } else if (pendingRequest) {
+                                      // Show pending request with approve/deny options
+                                      return (
+                                        <div className="mt-2 p-2 bg-yellow-100 rounded border border-yellow-300">
+                                          <div className="text-xs text-yellow-800 font-semibold">
+                                            ⏳ {assignment} - Early Arrival Requested
+                                          </div>
+                                          <div className="text-xs text-yellow-700">
+                                            {pendingRequest.earlyStart} - {pendingRequest.currentStart}
+                                          </div>
+                                          <div className="flex gap-1 mt-1">
+                                            <button
+                                              onClick={() => approveEarlyArrival(dateKey, earlyArrivalRequests[dateKey].findIndex(req => req.staff === assignment && req.day === day))}
+                                              className="flex-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                                            >
+                                              Approve
+                                            </button>
+                                            <button
+                                              onClick={() => denyEarlyArrival(dateKey, earlyArrivalRequests[dateKey].findIndex(req => req.staff === assignment && req.day === day))}
+                                              className="flex-1 px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                            >
+                                              Deny
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    } else if (operatingHours && actualStartTime !== operatingHours.start) {
+                                      // Show request button for manager to request on behalf of staff
+                                      return (
+                                        <button
+                                          onClick={() => {
+                                            const request = {
+                                              staff: assignment,
+                                              location: location,
+                                              day: day,
+                                              weekNum: currentWeek,
+                                              currentStart: actualStartTime,
+                                              earlyStart: operatingHours.start,
+                                              hoursAvailable: calculateTimeDifference(operatingHours.start, actualStartTime),
+                                              reason: `Come in early at ${location}`,
+                                              timestamp: new Date().toISOString()
+                                            };
+                                            
+                                            setEarlyArrivalRequests(prev => {
+                                              const updated = {
+                                                ...prev,
+                                                [dateKey]: [...(prev[dateKey] || []), request]
+                                              };
+                                              localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                                              return updated;
+                                            });
+                                            
+                                            alert(`Early arrival request submitted for ${assignment}!`);
+                                          }}
+                                          className="w-full mt-2 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                        >
+                                          📅 Request {assignment} come in at {operatingHours.start}
+                                        </button>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
                                 </div>
                             </div>
                           );
