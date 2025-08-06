@@ -94,15 +94,17 @@ const MasterScheduleSystem = () => {
   const [showSites, setShowSites] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [newOfficer, setNewOfficer] = useState({ name: '', password: '', color: 'bg-blue-500' });
-  const [newSite, setNewSite] = useState({ 
-    name: '', 
-    address: '', 
-    startTime: '', 
-    endTime: '', 
-    saturdayStart: '', 
-    saturdayEnd: '', 
-    closedDays: [] 
+    const [newSite, setNewSite] = useState({
+    name: '',
+    address: '',
+    startTime: '',
+    endTime: '',
+    saturdayStart: '',
+    saturdayEnd: '',
+    closedDays: []
   });
+
+  const [editingSite, setEditingSite] = useState(null);
   const [pendingChanges, setPendingChanges] = useState({});
   const [editingTime, setEditingTime] = useState(null); // { day, location, field: 'start' | 'end' }
   const [calendarEditingTime, setCalendarEditingTime] = useState(null); // Separate state for calendar editing
@@ -1781,35 +1783,167 @@ const MasterScheduleSystem = () => {
                         <span className="text-2xl">{site.icon}</span>
                         <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{name}</span>
                       </div>
-                      {name !== 'Short North' && name !== 'KL' && name !== 'Safepoint' && (
+                      <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            setSites(prev => {
-                              const updated = { ...prev };
-                              delete updated[name];
-                              return updated;
-                            });
-                          }}
-                          className="text-red-600 hover:text-red-800 text-sm"
+                          onClick={() => setEditingSite(name)}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
                         >
-                          Remove
+                          Edit
                         </button>
-                      )}
+                        {name !== 'Short North' && name !== 'KL' && name !== 'Safepoint' && (
+                          <button
+                            onClick={() => {
+                              setSites(prev => {
+                                const updated = { ...prev };
+                                delete updated[name];
+                                return updated;
+                              });
+                            }}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="space-y-2 text-sm">
-                      <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                        📍 {site.address}
+                    
+                    {editingSite === name ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <input
+                            type="text"
+                            placeholder="Site Name"
+                            value={site.name}
+                            onChange={(e) => {
+                              setSites(prev => ({
+                                ...prev,
+                                [name]: { ...prev[name], name: e.target.value }
+                              }));
+                            }}
+                            className={`p-2 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Address"
+                            value={site.address}
+                            onChange={(e) => {
+                              setSites(prev => ({
+                                ...prev,
+                                [name]: { ...prev[name], address: e.target.value }
+                              }));
+                            }}
+                            className={`p-2 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Start Time (e.g., 11:00a)"
+                            value={site.startTime}
+                            onChange={(e) => {
+                              setSites(prev => ({
+                                ...prev,
+                                [name]: { ...prev[name], startTime: e.target.value }
+                              }));
+                            }}
+                            className={`p-2 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                          />
+                          <input
+                            type="text"
+                            placeholder="End Time (e.g., 7:30p)"
+                            value={site.endTime}
+                            onChange={(e) => {
+                              setSites(prev => ({
+                                ...prev,
+                                [name]: { ...prev[name], endTime: e.target.value }
+                              }));
+                            }}
+                            className={`p-2 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Saturday Start (e.g., 9:00a)"
+                            value={site.saturdayStart}
+                            onChange={(e) => {
+                              setSites(prev => ({
+                                ...prev,
+                                [name]: { ...prev[name], saturdayStart: e.target.value }
+                              }));
+                            }}
+                            className={`p-2 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Saturday End (e.g., 3:30p)"
+                            value={site.saturdayEnd}
+                            onChange={(e) => {
+                              setSites(prev => ({
+                                ...prev,
+                                [name]: { ...prev[name], saturdayEnd: e.target.value }
+                              }));
+                            }}
+                            className={`p-2 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'}`}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Closed Days:
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                              <label key={day} className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={site.closedDays.includes(day)}
+                                  onChange={(e) => {
+                                    setSites(prev => ({
+                                      ...prev,
+                                      [name]: {
+                                        ...prev[name],
+                                        closedDays: e.target.checked
+                                          ? [...prev[name].closedDays, day]
+                                          : prev[name].closedDays.filter(d => d !== day)
+                                      }
+                                    }));
+                                  }}
+                                  className="rounded"
+                                />
+                                <span className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{day}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setEditingSite(null)}
+                            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingSite(null)}
+                            className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </div>
-                      <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                        🕐 Mon-Fri: {site.startTime} - {site.endTime}
+                    ) : (
+                      <div className="space-y-2 text-sm">
+                        <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          📍 {site.address}
+                        </div>
+                        <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          🕐 Mon-Fri: {site.startTime} - {site.endTime}
+                        </div>
+                        <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          🕐 Sat: {site.saturdayStart} - {site.saturdayEnd}
+                        </div>
+                        <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          ❌ Closed: {site.closedDays.join(', ')}
+                        </div>
                       </div>
-                      <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                        🕐 Sat: {site.saturdayStart} - {site.saturdayEnd}
-                      </div>
-                      <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                        ❌ Closed: {site.closedDays.join(', ')}
-                      </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
