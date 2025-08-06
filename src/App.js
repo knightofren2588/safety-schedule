@@ -163,7 +163,6 @@ const MasterScheduleSystem = () => {
   // Simple staff swap function for calendar
   const handleCalendarStaffSwap = (day, location, newStaff, currentStaff) => {
     if (newStaff && newStaff !== currentStaff) {
-      console.log('🔄 Staff swap:', currentStaff, '->', newStaff, 'at', day, location);
       setBaseSchedule(prev => {
         const updated = { ...prev };
         if (!updated[currentWeek]) {
@@ -584,29 +583,16 @@ const MasterScheduleSystem = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     try {
-      console.log('=== WEEK GENERATION EFFECT ===');
-      console.log('Current week:', currentWeek);
-      console.log('Base schedule exists for week:', !!baseSchedule[currentWeek]);
-      console.log('All weeks in baseSchedule:', Object.keys(baseSchedule));
-      
       if (!baseSchedule[currentWeek]) {
-        console.log('🔄 Generating schedule for week:', currentWeek);
         const newSchedule = generateWeekSchedule(currentWeek);
         
         if (newSchedule && newSchedule.assignments) {
-          console.log('✅ Generated valid schedule for week:', currentWeek);
           setBaseSchedule(prev => {
             const updated = { ...prev, [currentWeek]: newSchedule };
-            console.log('📝 Saving updated schedule to localStorage');
             saveDataWithSync('safetySchedule_baseSchedule', updated);
             return updated;
           });
-        } else {
-          console.error('❌ Generated schedule is invalid for week:', currentWeek);
-          console.error('Generated schedule:', newSchedule);
         }
-      } else {
-        console.log('✅ Week', currentWeek, 'already exists in baseSchedule');
       }
       
       // Generate missing weeks in the current range (current week ± 2 weeks)
@@ -618,7 +604,6 @@ const MasterScheduleSystem = () => {
       }
       
       if (weekRange.length > 0) {
-        console.log('🔄 Generating missing weeks in range:', weekRange);
         setBaseSchedule(prev => {
           const updated = { ...prev };
           weekRange.forEach(week => {
@@ -626,7 +611,6 @@ const MasterScheduleSystem = () => {
               const newSchedule = generateWeekSchedule(week);
               if (newSchedule && newSchedule.assignments) {
                 updated[week] = newSchedule;
-                console.log('✅ Generated week:', week);
               }
             } catch (error) {
               console.error('❌ Error generating week:', week, error);
@@ -643,10 +627,8 @@ const MasterScheduleSystem = () => {
       }
     } catch (error) {
       console.error('❌ Error generating missing week:', error);
-      console.error('Error details:', error.message, error.stack);
       
       // Fallback: create a basic schedule structure
-      console.log('🔄 Creating fallback schedule for week:', currentWeek);
       setBaseSchedule(prev => {
         const fallbackSchedule = {
           title: `Week ${currentWeek}`,
@@ -654,11 +636,11 @@ const MasterScheduleSystem = () => {
           assignments: {}
         };
         const updated = { ...prev, [currentWeek]: fallbackSchedule };
-        console.log('📝 Saving fallback schedule to localStorage');
         saveDataWithSync('safetySchedule_baseSchedule', updated);
         return updated;
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWeek, generateWeekSchedule]); // Include generateWeekSchedule to ensure it's available
 
   // Function to get the current week number based on today's date
@@ -3577,9 +3559,7 @@ const MasterScheduleSystem = () => {
                                       req => req.staff === assignment && req.day === day
                                     );
                                     
-                                    const operatingHours = getOperatingHours(location, day);
                                     const customTime = getCustomShiftTime(day, location, currentWeek);
-                                    const actualStartTime = customTime?.start || shiftHours.start;
                                     
                                     if (approvedEarlyArrival) {
                                       // Show approved early arrival with revert option
