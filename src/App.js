@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Target, Clock, Settings, Users, BarChart3, Upload, CalendarX, MapPin, Calendar } from 'lucide-react';
+import { Target, Clock, Settings, Users, BarChart3, CalendarX, MapPin, Calendar } from 'lucide-react';
 
 // ===== PASSWORD CONFIGURATION =====
 // Change these passwords here for easy access
@@ -222,8 +222,11 @@ const MasterScheduleSystem = () => {
         return updated;
       });
     } else if (newStatus === 'late') {
-      // Add to late employees
-      toggleEmployeeLate(staff, day, currentWeek, 'Late Arrival');
+      // Add to late employees with time prompt
+      const lateTime = prompt(`Enter the time ${staff} was late (e.g., 8:30a, 9:15a):`);
+      if (lateTime !== null) {
+        toggleEmployeeLate(staff, day, currentWeek, lateTime, 'Late Arrival');
+      }
     } else if (newStatus === 'remove') {
       // Remove status - clear PTO, call-off, and late status
       const dateKey = getWeekDates(currentWeek)[days.indexOf(day)].toISOString().split('T')[0];
@@ -795,7 +798,7 @@ const MasterScheduleSystem = () => {
   };
 
   // Toggle employee late status
-  const toggleEmployeeLate = (staff, day, weekNum, reason = 'Late Arrival') => {
+  const toggleEmployeeLate = (staff, day, weekNum, lateTime = '', reason = 'Late Arrival') => {
     const weekDates = getWeekDates(weekNum);
     const dayIndex = days.indexOf(day);
     const dateKey = weekDates[dayIndex].toISOString().split('T')[0];
@@ -817,11 +820,12 @@ const MasterScheduleSystem = () => {
         delete updatedLateEmployees[dateKey];
       }
     } else {
-      // Add late status
+      // Add late status with time
       updatedLateEmployees[dateKey].push({
         staff,
         day,
         reason,
+        lateTime: lateTime || 'Not specified',
         timestamp: new Date().toISOString()
       });
     }
@@ -2595,6 +2599,11 @@ const MasterScheduleSystem = () => {
                                 </button>
                               </div>
                             </div>
+                            {late.lateTime && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Late Time: {late.lateTime}
+                              </div>
+                            )}
                             {late.reason && (
                               <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                 Reason: {late.reason}
