@@ -417,6 +417,37 @@ const MasterScheduleSystem = () => {
     return { month: months[firstDate.getMonth()], year: firstDate.getFullYear() };
   }, [getWeekDates]);
 
+  // Function to format week display with actual dates
+  const getWeekDisplayText = useCallback((weekNum) => {
+    const weekDates = getWeekDates(weekNum);
+    const startDate = weekDates[0];
+    const endDate = weekDates[6]; // Sunday
+    
+    const startMonth = startDate.toLocaleDateString('en-US', { month: 'short' });
+    const startDay = startDate.getDate();
+    const endMonth = endDate.toLocaleDateString('en-US', { month: 'short' });
+    const endDay = endDate.getDate();
+    const year = startDate.getFullYear();
+    
+    // If same month, show "Aug 4th - 10th"
+    if (startDate.getMonth() === endDate.getMonth()) {
+      return `${startMonth} ${startDay}${getDaySuffix(startDay)} - ${endDay}${getDaySuffix(endDay)}`;
+    }
+    // If different months, show "Aug 31st - Sep 6th"
+    return `${startMonth} ${startDay}${getDaySuffix(startDay)} - ${endMonth} ${endDay}${getDaySuffix(endDay)}`;
+  }, [getWeekDates]);
+
+  // Helper function to get day suffix (1st, 2nd, 3rd, etc.)
+  const getDaySuffix = (day) => {
+    if (day >= 11 && day <= 13) return 'th';
+    switch (day % 10) {
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
+    }
+  };
+
   const formatDate = useCallback((date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${months[date.getMonth()]} ${date.getDate()}`;
@@ -644,7 +675,7 @@ const MasterScheduleSystem = () => {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentWeek, generateWeekSchedule]); // Include generateWeekSchedule to ensure it's available
+  }, [currentWeek, generateWeekSchedule, baseSchedule]); // Include generateWeekSchedule to ensure it's available
 
   // Function to get the current week number based on today's date
 
@@ -1453,7 +1484,7 @@ const MasterScheduleSystem = () => {
           {isAuthenticated && (
             <div className={`mt-3 p-3 rounded-lg ${darkMode ? 'bg-blue-900 bg-opacity-30 border border-blue-600' : 'bg-blue-50 border border-blue-200'}`}>
               <p className={`text-xs ${darkMode ? 'text-blue-100' : 'text-blue-800'}`}>
-                📅 <strong>Current Week:</strong> Week {currentWeek} of {TOTAL_WEEKS} • {currentMonthYear.month} {currentMonthYear.year} • 
+                📅 <strong>Current Week:</strong> {getWeekDisplayText(currentWeek)} • {currentMonthYear.month} {currentMonthYear.year} • 
                 Schedule automatically progresses through months. The 4-week rotation repeats continuously.
               </p>
             </div>
@@ -1819,7 +1850,7 @@ const MasterScheduleSystem = () => {
                   ← Previous Week
                 </button>
                 <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  Week {currentWeek} of {TOTAL_WEEKS}
+                  {getWeekDisplayText(currentWeek)}
                 </span>
                 <button
                   onClick={() => setCurrentWeek(Math.min(TOTAL_WEEKS, currentWeek + 1))}
@@ -1834,51 +1865,56 @@ const MasterScheduleSystem = () => {
                   {currentMonthYear.month} {currentMonthYear.year}
                 </div>
                 <div className="flex gap-1">
-                  <button
-                    onClick={() => {
-                      // Jump to August 2025 (weeks 1-4)
-                      setCurrentWeek(1);
-                    }}
-                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 1 && currentWeek <= 4 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                  >
-                    Aug
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Jump to September 2024 (weeks 5-8)
-                      setCurrentWeek(5);
-                    }}
-                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 5 && currentWeek <= 8 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                  >
-                    Sep
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Jump to October 2024 (weeks 9-13)
-                      setCurrentWeek(9);
-                    }}
-                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 9 && currentWeek <= 13 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                  >
-                    Oct
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Jump to November 2024 (weeks 14-17)
-                      setCurrentWeek(14);
-                    }}
-                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 14 && currentWeek <= 17 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                  >
-                    Nov
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Jump to December 2024 (weeks 18-22)
-                      setCurrentWeek(18);
-                    }}
-                    className={`px-2 py-1 text-xs rounded ${currentWeek >= 18 && currentWeek <= 22 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                  >
-                    Dec
-                  </button>
+                                        <button
+                        onClick={() => {
+                          // Jump to August 2025 (weeks 1-4)
+                          setCurrentWeek(1);
+                        }}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 1 && currentWeek <= 4 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(1) + ' - ' + getWeekDisplayText(4)}
+                      >
+                        Aug
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Jump to September 2025 (weeks 5-8)
+                          setCurrentWeek(5);
+                        }}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 5 && currentWeek <= 8 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(5) + ' - ' + getWeekDisplayText(8)}
+                      >
+                        Sep
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Jump to October 2025 (weeks 9-13)
+                          setCurrentWeek(9);
+                        }}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 9 && currentWeek <= 13 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(9) + ' - ' + getWeekDisplayText(13)}
+                      >
+                        Oct
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Jump to November 2025 (weeks 14-17)
+                          setCurrentWeek(14);
+                        }}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 14 && currentWeek <= 17 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(14) + ' - ' + getWeekDisplayText(17)}
+                      >
+                        Nov
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Jump to December 2025 (weeks 18-22)
+                          setCurrentWeek(18);
+                        }}
+                        className={`px-2 py-1 text-xs rounded ${currentWeek >= 18 && currentWeek <= 22 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(18) + ' - ' + getWeekDisplayText(22)}
+                      >
+                        Dec
+                      </button>
                   
                   {/* Dropdown for months past December */}
                   <select
@@ -1891,14 +1927,14 @@ const MasterScheduleSystem = () => {
                     value=""
                     className={`px-2 py-1 text-xs rounded border ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-700 border-gray-300'}`}
                   >
-                    <option value="">More Months...</option>
-                    <option value="23">Jan 2025 (Week 23-26)</option>
-                    <option value="27">Feb 2025 (Week 27-30)</option>
-                    <option value="31">Mar 2025 (Week 31-35)</option>
-                    <option value="36">Apr 2025 (Week 36-39)</option>
-                    <option value="40">May 2025 (Week 40-43)</option>
-                    <option value="44">Jun 2025 (Week 44-47)</option>
-                    <option value="48">Jul 2025 (Week 48-52)</option>
+                                            <option value="">More Months...</option>
+                        <option value="23">Jan 2025 ({getWeekDisplayText(23)} - {getWeekDisplayText(26)})</option>
+                        <option value="27">Feb 2025 ({getWeekDisplayText(27)} - {getWeekDisplayText(30)})</option>
+                        <option value="31">Mar 2025 ({getWeekDisplayText(31)} - {getWeekDisplayText(35)})</option>
+                        <option value="36">Apr 2025 ({getWeekDisplayText(36)} - {getWeekDisplayText(39)})</option>
+                        <option value="40">May 2025 ({getWeekDisplayText(40)} - {getWeekDisplayText(43)})</option>
+                        <option value="44">Jun 2025 ({getWeekDisplayText(44)} - {getWeekDisplayText(47)})</option>
+                        <option value="48">Jul 2025 ({getWeekDisplayText(48)} - {getWeekDisplayText(52)})</option>
                   </select>
                 </div>
               </div>
@@ -2189,6 +2225,398 @@ const MasterScheduleSystem = () => {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Analytics Panel */}
+        {showAnalytics && isAuthenticated && (
+          <div className={`mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <BarChart3 className="w-5 h-5" />
+              Analytics & Comprehensive Logs
+            </h3>
+            
+            {/* Statistics Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-blue-50'} border ${darkMode ? 'border-gray-600' : 'border-blue-200'}`}>
+                <div className="text-2xl font-bold text-blue-600">{Object.values(lateEmployees).flat().length}</div>
+                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Late Employees</div>
+              </div>
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-red-50'} border ${darkMode ? 'border-gray-600' : 'border-red-200'}`}>
+                <div className="text-2xl font-bold text-red-600">{Object.values(callOffs).flat().length}</div>
+                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Call-Offs</div>
+              </div>
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-green-50'} border ${darkMode ? 'border-gray-600' : 'border-green-200'}`}>
+                <div className="text-2xl font-bold text-green-600">{Object.values(ptoRequests).flat().length}</div>
+                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>PTO Requests</div>
+              </div>
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-purple-50'} border ${darkMode ? 'border-gray-600' : 'border-purple-200'}`}>
+                <div className="text-2xl font-bold text-purple-600">{Object.values(earlyArrivalRequests).flat().length}</div>
+                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Early Arrivals</div>
+              </div>
+            </div>
+
+            {/* Detailed Logs */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Late Employees Log */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Late Employees ({Object.values(lateEmployees).flat().length})
+                </h4>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {Object.entries(lateEmployees).map(([date, lateList]) => (
+                    <div key={date} className={`p-3 rounded-lg border ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setLateEmployees(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {lateList.map((late, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-orange-700' : 'bg-orange-100'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {late.staff} - {late.day}
+                              </span>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    setLateEmployees(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].filter((_, i) => i !== index)
+                                      };
+                                      if (updated[date].length === 0) {
+                                        delete updated[date];
+                                      }
+                                      localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                  }}
+                                  className="text-green-600 hover:text-green-800 text-xs"
+                                >
+                                  Mark On Time
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setLateEmployees(prev => {
+                                      const updated = {
+                                        ...prev,
+                                        [date]: prev[date].filter((_, i) => i !== index)
+                                      };
+                                      if (updated[date].length === 0) {
+                                        delete updated[date];
+                                      }
+                                      localStorage.setItem('safetySchedule_lateEmployees', JSON.stringify(updated));
+                                      return updated;
+                                    });
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                            {late.lateTime && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Late Time: {late.lateTime}
+                              </div>
+                            )}
+                            {late.reason && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Reason: {late.reason}
+                              </div>
+                            )}
+                            {late.timestamp && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Marked: {new Date(late.timestamp).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Call-Offs & PTO Log */}
+              <div>
+                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Call-Offs & PTO ({Object.values(callOffs).flat().length + Object.values(ptoRequests).flat().length})
+                </h4>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {/* Call-Offs */}
+                  {Object.entries(callOffs).map(([date, callOffList]) => (
+                    <div key={`calloff-${date}`} className={`p-3 rounded-lg border ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-red-50'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()} - Call-Offs
+                        </span>
+                        <button
+                          onClick={() => {
+                            setCallOffs(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {callOffList.map((callOff, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-red-700' : 'bg-red-100'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {callOff.staff}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setCallOffs(prev => {
+                                    const updated = {
+                                      ...prev,
+                                      [date]: prev[date].filter((_, i) => i !== index)
+                                    };
+                                    if (updated[date].length === 0) {
+                                      delete updated[date];
+                                    }
+                                    localStorage.setItem('safetySchedule_callOffs', JSON.stringify(updated));
+                                    return updated;
+                                  });
+                                }}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            {callOff.reason && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Reason: {callOff.reason}
+                              </div>
+                            )}
+                            {callOff.timestamp && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Requested: {new Date(callOff.timestamp).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* PTO Requests */}
+                  {Object.entries(ptoRequests).map(([date, ptoList]) => (
+                    <div key={`pto-${date}`} className={`p-3 rounded-lg border ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-green-50'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          {new Date(date).toLocaleDateString()} - PTO Requests
+                        </span>
+                        <button
+                          onClick={() => {
+                            setPtoRequests(prev => {
+                              const updated = { ...prev };
+                              delete updated[date];
+                              localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                              return updated;
+                            });
+                          }}
+                          className="text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {ptoList.map((pto, index) => (
+                          <div key={index} className={`p-2 rounded ${darkMode ? 'bg-green-700' : 'bg-green-100'}`}>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {pto.staff}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setPtoRequests(prev => {
+                                    const updated = {
+                                      ...prev,
+                                      [date]: prev[date].filter((_, i) => i !== index)
+                                    };
+                                    if (updated[date].length === 0) {
+                                      delete updated[date];
+                                    }
+                                    localStorage.setItem('safetySchedule_ptoRequests', JSON.stringify(updated));
+                                    return updated;
+                                  });
+                                }}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            {pto.reason && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Reason: {pto.reason}
+                              </div>
+                            )}
+                            {pto.timestamp && (
+                              <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Requested: {new Date(pto.timestamp).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Early Arrival Requests */}
+            <div className="mt-6">
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Early Arrival Requests ({Object.values(earlyArrivalRequests).flat().length})
+              </h4>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {Object.entries(earlyArrivalRequests).map(([date, requests]) => (
+                  <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-yellow-50'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                        {new Date(date).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setEarlyArrivalRequests(prev => {
+                            const updated = { ...prev };
+                            delete updated[date];
+                            localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
+                            return updated;
+                          });
+                        }}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {requests.map((request, index) => (
+                        <div key={index} className={`p-2 rounded ${darkMode ? 'bg-yellow-700' : 'bg-yellow-100'}`}>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                              {request.staff} - {request.location}
+                            </span>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => approveEarlyArrival(date, index)}
+                                className="text-green-600 hover:text-green-800 text-xs"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => denyEarlyArrival(date, index)}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                Deny
+                              </button>
+                            </div>
+                          </div>
+                          <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {request.earlyStart} - {request.currentStart} ({request.hoursAvailable}h early)
+                          </div>
+                          {request.reason && (
+                            <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Reason: {request.reason}
+                            </div>
+                          )}
+                          {request.timestamp && (
+                            <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Requested: {new Date(request.timestamp).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Approved Early Arrivals */}
+            <div className="mt-6">
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Approved Early Arrivals ({Object.values(approvedEarlyArrivals).flat().length})
+              </h4>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {Object.entries(approvedEarlyArrivals).map(([date, requests]) => (
+                  <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-green-50'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                        {new Date(date).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setApprovedEarlyArrivals(prev => {
+                            const updated = { ...prev };
+                            delete updated[date];
+                            localStorage.setItem('safetySchedule_approvedEarlyArrivals', JSON.stringify(updated));
+                            return updated;
+                          });
+                        }}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {requests.map((request, index) => (
+                        <div key={index} className={`p-2 rounded ${darkMode ? 'bg-green-700' : 'bg-green-100'}`}>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                              {request.staff} - {request.location}
+                            </span>
+                            <button
+                              onClick={() => removeApprovedEarlyArrival(date, index)}
+                              className="text-red-500 hover:text-red-700 text-xs"
+                            >
+                              Revert
+                            </button>
+                          </div>
+                          <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {request.earlyStart} - {request.currentStart} ({request.hoursAvailable}h early)
+                          </div>
+                          {request.reason && (
+                            <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Reason: {request.reason}
+                            </div>
+                          )}
+                          {request.approvedAt && (
+                            <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Approved: {new Date(request.approvedAt).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -2925,8 +3353,8 @@ const MasterScheduleSystem = () => {
           <div className="bg-gradient-to-r from-red-600 to-orange-600 p-6">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
               <Clock className="w-6 h-6" />
-              {viewMode === 'master' ? `${currentSchedule?.title || `Week ${currentWeek}`} - Base Schedule` : 
-               loggedInStaff ? `${loggedInStaff}'s Schedule - Week ${currentWeek}` : `${selectedStaffView}'s Schedule - Week ${currentWeek}`}
+                          {viewMode === 'master' ? `${currentSchedule?.title || getWeekDisplayText(currentWeek)} - Base Schedule` :
+            loggedInStaff ? `${loggedInStaff}'s Schedule - ${getWeekDisplayText(currentWeek)}` : `${selectedStaffView}'s Schedule - ${getWeekDisplayText(currentWeek)}`}
             </h2>
           </div>
 
@@ -2935,7 +3363,7 @@ const MasterScheduleSystem = () => {
             {loggedInStaff && !isAuthenticated ? (
               <div className="space-y-4">
                                   <div className={`p-4 rounded-lg ${staffInfo[loggedInStaff].color} text-white`}>
-                    <h3 className="text-lg font-semibold mb-2">{loggedInStaff}'s Schedule - Week {currentWeek}</h3>
+                    <h3 className="text-lg font-semibold mb-2">{loggedInStaff}'s Schedule - {getWeekDisplayText(currentWeek)}</h3>
                     
                     {/* Request Status Log */}
                     <div className="mt-4 p-3 bg-white bg-opacity-20 rounded-lg">
@@ -3647,7 +4075,7 @@ const MasterScheduleSystem = () => {
                       ← Previous Week
                     </button>
                     <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                      Week {currentWeek} of {TOTAL_WEEKS}
+                      {getWeekDisplayText(currentWeek)}
                     </span>
                     <button
                       onClick={() => setCurrentWeek(Math.min(TOTAL_WEEKS, currentWeek + 1))}
@@ -3666,30 +4094,35 @@ const MasterScheduleSystem = () => {
                       <button
                         onClick={() => setCurrentWeek(1)}
                         className={`px-2 py-1 text-xs rounded ${currentWeek >= 1 && currentWeek <= 4 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(1) + ' - ' + getWeekDisplayText(4)}
                       >
                         Aug
                       </button>
                       <button
                         onClick={() => setCurrentWeek(5)}
                         className={`px-2 py-1 text-xs rounded ${currentWeek >= 5 && currentWeek <= 8 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(5) + ' - ' + getWeekDisplayText(8)}
                       >
                         Sep
                       </button>
                       <button
                         onClick={() => setCurrentWeek(9)}
                         className={`px-2 py-1 text-xs rounded ${currentWeek >= 9 && currentWeek <= 13 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(9) + ' - ' + getWeekDisplayText(13)}
                       >
                         Oct
                       </button>
                       <button
                         onClick={() => setCurrentWeek(14)}
                         className={`px-2 py-1 text-xs rounded ${currentWeek >= 14 && currentWeek <= 17 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(14) + ' - ' + getWeekDisplayText(17)}
                       >
                         Nov
                       </button>
                       <button
                         onClick={() => setCurrentWeek(18)}
                         className={`px-2 py-1 text-xs rounded ${currentWeek >= 18 && currentWeek <= 22 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                        title={getWeekDisplayText(18) + ' - ' + getWeekDisplayText(22)}
                       >
                         Dec
                       </button>
@@ -3706,20 +4139,20 @@ const MasterScheduleSystem = () => {
                         className={`px-2 py-1 text-xs rounded border ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-700 border-gray-300'}`}
                       >
                         <option value="">More Months...</option>
-                        <option value="23">Jan 2025 (Week 23-26)</option>
-                        <option value="27">Feb 2025 (Week 27-30)</option>
-                        <option value="31">Mar 2025 (Week 31-35)</option>
-                        <option value="36">Apr 2025 (Week 36-39)</option>
-                        <option value="40">May 2025 (Week 40-43)</option>
-                        <option value="44">Jun 2025 (Week 44-47)</option>
-                        <option value="48">Jul 2025 (Week 48-52)</option>
+                        <option value="23">Jan 2025 ({getWeekDisplayText(23)} - {getWeekDisplayText(26)})</option>
+                        <option value="27">Feb 2025 ({getWeekDisplayText(27)} - {getWeekDisplayText(30)})</option>
+                        <option value="31">Mar 2025 ({getWeekDisplayText(31)} - {getWeekDisplayText(35)})</option>
+                        <option value="36">Apr 2025 ({getWeekDisplayText(36)} - {getWeekDisplayText(39)})</option>
+                        <option value="40">May 2025 ({getWeekDisplayText(40)} - {getWeekDisplayText(43)})</option>
+                        <option value="44">Jun 2025 ({getWeekDisplayText(44)} - {getWeekDisplayText(47)})</option>
+                        <option value="48">Jul 2025 ({getWeekDisplayText(48)} - {getWeekDisplayText(52)})</option>
                       </select>
                     </div>
                   </div>
                 </div>
                 
                 <div className={`p-4 rounded-lg ${staffInfo[selectedStaffView].color} text-white`}>
-                  <h3 className="text-lg font-semibold mb-2">{selectedStaffView}'s Schedule - Week {currentWeek}</h3>
+                  <h3 className="text-lg font-semibold mb-2">{selectedStaffView}'s Schedule - {getWeekDisplayText(currentWeek)}</h3>
                   <div className="text-sm opacity-90">
                     Total Hours: {calculateBaseHours(currentWeek)[selectedStaffView]} / 40 target
                   </div>
