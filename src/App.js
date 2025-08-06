@@ -224,8 +224,8 @@ const MasterScheduleSystem = () => {
     } else if (newStatus === 'late') {
       // Add to late employees with time prompt
       const lateTime = prompt(`Enter the time ${staff} was late (e.g., 8:30a, 9:15a):`);
-      if (lateTime !== null) {
-        toggleEmployeeLate(staff, day, currentWeek, lateTime, 'Late Arrival');
+      if (lateTime !== null && lateTime.trim() !== '') {
+        toggleEmployeeLate(staff, day, currentWeek, lateTime.trim(), 'Late Arrival');
       }
     } else if (newStatus === 'remove') {
       // Remove status - clear PTO, call-off, and late status
@@ -3467,7 +3467,18 @@ const MasterScheduleSystem = () => {
                                     {/* Late Employee Button */}
                                     {assignment && (
                                       <button
-                                        onClick={() => toggleEmployeeLate(assignment, day, currentWeek)}
+                                        onClick={() => {
+                                          if (isEmployeeLate(assignment, day, currentWeek)) {
+                                            // If already late, just remove the late status
+                                            toggleEmployeeLate(assignment, day, currentWeek);
+                                          } else {
+                                            // If not late, prompt for late time
+                                            const lateTime = prompt(`Enter the time ${assignment} was late (e.g., 8:30a, 9:15a):`);
+                                            if (lateTime !== null && lateTime.trim() !== '') {
+                                              toggleEmployeeLate(assignment, day, currentWeek, lateTime.trim(), 'Late Arrival');
+                                            }
+                                          }
+                                        }}
                                         className={`ml-2 px-2 py-1 text-xs rounded ${
                                           isEmployeeLate(assignment, day, currentWeek)
                                             ? 'bg-green-500 hover:bg-green-600 text-white'
