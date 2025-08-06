@@ -106,8 +106,7 @@ const MasterScheduleSystem = () => {
   const [pendingChanges, setPendingChanges] = useState({});
   const [editingTime, setEditingTime] = useState(null); // { day, location, field: 'start' | 'end' }
   const [calendarEditingTime, setCalendarEditingTime] = useState(null); // Separate state for calendar editing
-  const [dragState, setDragState] = useState(null); // { staff, day, location, week }
-  const [dragOverState, setDragOverState] = useState(null); // { staff, day, location, week }
+
 
   // Force master view when calendar is open
   useEffect(() => {
@@ -159,109 +158,7 @@ const MasterScheduleSystem = () => {
     }
   };
 
-  // Drag and drop handlers for calendar staff swaps
-  const handleDragStart = (e, staff, day, location) => {
-    console.log('🎯 DRAG START:', { staff, day, location });
-    
-    // Basic validation
-    if (!staff || !day || !location) {
-      console.log('❌ Drag start failed - missing data');
-      return;
-    }
-    
-    const staffIsOff = isStaffOff(staff, day, currentWeek);
-    if (staffIsOff) {
-      console.log('❌ Drag start failed - staff is off');
-      return;
-    }
-    
-    // Set drag state
-    const dragData = { staff, day, location, week: currentWeek };
-    setDragState(dragData);
-    console.log('✅ Drag started:', dragData);
-    
-    // Set drag data
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
-  };
 
-  const handleDragOver = (e, staff, day, location) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (staff && day && location) {
-      setDragOverState({ staff, day, location, week: currentWeek });
-    }
-  };
-
-  const handleDrop = (e, targetStaff, targetDay, targetLocation) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log('🎯 DROP:', { targetStaff, targetDay, targetLocation });
-    console.log('Drag state:', dragState);
-    
-    if (!dragState) {
-      console.log('❌ No drag state');
-      return;
-    }
-    
-    const { staff: sourceStaff, day: sourceDay, location: sourceLocation } = dragState;
-    
-    // Don't drop on same location
-    if (sourceDay === targetDay && sourceLocation === targetLocation) {
-      console.log('❌ Same location drop');
-      setDragState(null);
-      setDragOverState(null);
-      return;
-    }
-    
-    // Perform the swap
-    setBaseSchedule(prev => {
-      const updated = { ...prev };
-      
-      // Ensure week exists
-      if (!updated[currentWeek]) {
-        updated[currentWeek] = { assignments: {} };
-      }
-      if (!updated[currentWeek].assignments) {
-        updated[currentWeek].assignments = {};
-      }
-      
-      // Remove source assignment
-      if (updated[currentWeek].assignments[sourceDay]?.[sourceLocation]) {
-        delete updated[currentWeek].assignments[sourceDay][sourceLocation];
-      }
-      
-      // Add target assignment
-      if (!updated[currentWeek].assignments[targetDay]) {
-        updated[currentWeek].assignments[targetDay] = {};
-      }
-      updated[currentWeek].assignments[targetDay][targetLocation] = sourceStaff;
-      
-      // If target had staff, swap them to source
-      if (targetStaff && targetStaff !== sourceStaff) {
-        if (!updated[currentWeek].assignments[sourceDay]) {
-          updated[currentWeek].assignments[sourceDay] = {};
-        }
-        updated[currentWeek].assignments[sourceDay][sourceLocation] = targetStaff;
-      }
-      
-      console.log('✅ Schedule updated');
-      saveDataWithSync('safetySchedule_baseSchedule', updated);
-      return updated;
-    });
-    
-    // Clear drag states
-    setDragState(null);
-    setDragOverState(null);
-  };
-
-  const handleDragEnd = (e) => {
-    e.stopPropagation();
-    setDragState(null);
-    setDragOverState(null);
-  };
 
   // Simple staff swap function for calendar
   const handleCalendarStaffSwap = (day, location, newStaff, currentStaff) => {
@@ -966,6 +863,9 @@ const MasterScheduleSystem = () => {
     
     // Check all locations for early arrival opportunities
     Object.keys(sites).forEach(location => {
+      // Skip if staff is already assigned to this location
+      if (currentSchedule[location] === staff) return;
+      
       const locationHours = getOperatingHours(location, day);
       if (!locationHours || !locationHours.start) return;
       
@@ -2104,74 +2004,19 @@ const MasterScheduleSystem = () => {
                         const customTime = location ? getCustomShiftTime(day, location, currentWeek) : null;
                         const operatingHours = location ? getOperatingHours(location, day) : null;
                         
-                        // Debug drag and drop setup
-                        const isDraggable = location && !isOff;
-                        if (isDraggable) {
-                          console.log('🎯 Draggable cell found:', {
-                            staff,
-                            day,
-                            location,
-                            isOff,
-                            isDraggable
-                          });
-                        }
-                        
-                        // Debug all draggable cells
-                        if (isDraggable) {
-                          console.log('🎯 All draggable cells:', {
-                            staff,
-                            day,
-                            location,
-                            isOff,
-                            isDraggable
-                          });
-                        }
+
                         
                         return (
                           <div 
                             key={dayIndex} 
-                            draggable={isDraggable}
-                            onDragStart={(e) => {
-                              console.log('🎯 DRAG START EVENT TRIGGERED:', { staff, day, location, isDraggable });
-                              if (isDraggable) {
-                                handleDragStart(e, staff, day, location);
-                              } else {
-                                console.log('❌ Drag prevented - not draggable');
-                              }
-                            }}
-                            onDragOver={(e) => {
-                              console.log('🎯 DRAG OVER EVENT TRIGGERED:', { staff, day, location });
-                              handleDragOver(e, staff, day, location);
-                            }}
-                            onDrop={(e) => {
-                              console.log('🎯 DROP EVENT TRIGGERED:', { staff, day, location });
-                              handleDrop(e, staff, day, location);
-                            }}
-                            onDragEnd={(e) => {
-                              console.log('🎯 DRAG END EVENT TRIGGERED');
-                              handleDragEnd(e);
-                            }}
-                            onDragEnter={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
                             className={`p-3 rounded-lg border transition-all duration-200 ${
                               isOff ? 'bg-red-100 border-red-300' :
                               location ? `${staffInfo[staff].color} text-white` :
                               darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-200'
-                            } ${
-                              dragState && dragState.staff === staff && dragState.day === day && dragState.location === location
-                                ? 'opacity-50 scale-95 shadow-lg' : ''
-                            } ${
-                              dragOverState && dragOverState.staff === staff && dragOverState.day === day && dragOverState.location === location
-                                ? 'ring-2 ring-yellow-400 ring-opacity-75 scale-105' : ''
-                            } ${
-                              location && !isOff ? 'cursor-grab active:cursor-grabbing hover:shadow-md' : ''
                             }`}
-                            title={location && !isOff ? `Drag ${staff} to swap with another staff member` : ''}
                             onClick={(e) => {
                               // Only handle clicks for empty cells or when not dragging
-                              if (!dragState && (!location || isOff)) {
+                              if (!location || isOff) {
                                 e.stopPropagation();
                                 console.log('Calendar cell clicked:', day, location, staff);
                               }
@@ -3306,7 +3151,7 @@ const MasterScheduleSystem = () => {
                                   </div>
                                 );
                               } else if (pendingRequest) {
-                                // Show pending request with approve/deny options
+                                // Show pending request status only (no approve/deny for individual view)
                                 return (
                                   <div className="mt-2 p-2 bg-yellow-100 rounded border border-yellow-300">
                                     <div className="text-xs text-yellow-800 font-semibold">
@@ -3315,19 +3160,8 @@ const MasterScheduleSystem = () => {
                                     <div className="text-xs text-yellow-700">
                                       {pendingRequest.earlyStart} - {pendingRequest.currentStart}
                                     </div>
-                                    <div className="flex gap-1 mt-1">
-                                      <button
-                                        onClick={() => approveEarlyArrival(dateKey, earlyArrivalRequests[dateKey].findIndex(req => req.staff === loggedInStaff && req.day === shift.day))}
-                                        className="flex-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                                      >
-                                        Approve
-                                      </button>
-                                      <button
-                                        onClick={() => denyEarlyArrival(dateKey, earlyArrivalRequests[dateKey].findIndex(req => req.staff === loggedInStaff && req.day === shift.day))}
-                                        className="flex-1 px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                                      >
-                                        Deny
-                                      </button>
+                                    <div className="text-xs text-yellow-600 mt-1">
+                                      Waiting for manager approval...
                                     </div>
                                   </div>
                                 );
