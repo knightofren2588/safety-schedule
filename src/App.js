@@ -685,7 +685,7 @@ const MasterScheduleSystem = () => {
     if (password === PASSWORDS.MASTER) {
       setIsAuthenticated(true);
       setShowLogin(false);
-    } else {
+          } else {
       alert('Incorrect password');
     }
   };
@@ -805,8 +805,8 @@ const MasterScheduleSystem = () => {
     } else {
       // Add cancellation
       updatedCancelledShifts[dateKey].push({
-        day,
-        location,
+            day,
+            location,
         reason,
         timestamp: new Date().toISOString()
       });
@@ -940,7 +940,7 @@ const MasterScheduleSystem = () => {
     
     setEarlyArrivalRequests(prev => {
       const updated = {
-        ...prev,
+      ...prev,
         [dateKey]: [...(prev[dateKey] || []), request]
       };
       localStorage.setItem('safetySchedule_earlyArrivalRequests', JSON.stringify(updated));
@@ -1097,7 +1097,7 @@ const MasterScheduleSystem = () => {
     const shiftKey = `${weekNum}-${day}-${location}`;
     setCustomHours(prev => {
       const updated = {
-        ...prev,
+      ...prev,
         [shiftKey]: newDuration
       };
       // Save to localStorage
@@ -1283,8 +1283,8 @@ const MasterScheduleSystem = () => {
         [officerName]: { 
           color: newOfficer.color, 
           textColor: `${newOfficer.color} text-white` 
-        }
-      }));
+      }
+    }));
       
       // Add to passwords
       PASSWORDS.STAFF[officerName] = newOfficer.password;
@@ -1393,21 +1393,21 @@ const MasterScheduleSystem = () => {
 
   // Render login screen
   if (showLogin) {
-    return (
-      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-indigo-50 via-white to-cyan-50'} p-6 ${theme}`}>
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-indigo-50 via-white to-cyan-50'} p-6 ${theme}`}>
         <div className="max-w-md mx-auto mt-20">
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-xl p-8`}>
-            <div className="text-center mb-8">
+        <div className="text-center mb-8">
               <div className="p-3 bg-indigo-600 rounded-xl inline-block mb-4">
-                <Target className="w-8 h-8 text-white" />
-              </div>
+              <Target className="w-8 h-8 text-white" />
+            </div>
               <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                 Safety Schedule Login
-              </h1>
+            </h1>
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
                 Enter your password to access the schedule
               </p>
-            </div>
+          </div>
 
             <div className="space-y-4">
               <button
@@ -1497,15 +1497,15 @@ const MasterScheduleSystem = () => {
             🔓 Logout
           </button>
         </div>
-
-        {/* Control Panel */}
+          
+          {/* Control Panel */}
         <div className="flex flex-wrap justify-center gap-2 lg:gap-4 mt-4 lg:mt-6">
           {/* Master-only controls */}
           {isAuthenticated && (
             <>
 
 
-              <button
+            <button
                 onClick={() => handleViewModeChange(viewMode === 'master' ? 'individual' : 'master')}
                 disabled={showCalendar}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
@@ -1525,18 +1525,18 @@ const MasterScheduleSystem = () => {
               >
                 <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4" />
                 Analytics
-              </button>
-
-              <button
+            </button>
+            
+            <button
                 onClick={restoreBaseSchedule}
                 className="flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-xs lg:text-sm"
-              >
+            >
                 🔄 Restore Schedule
-              </button>
+            </button>
 
 
-
-              <button
+            
+            <button
                 onClick={() => setShowCallOffManager(!showCallOffManager)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   showCallOffManager ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1544,9 +1544,9 @@ const MasterScheduleSystem = () => {
               >
                 <CalendarX className="w-3 h-3 lg:w-4 lg:h-4" />
                 Call-Off Manager
-              </button>
-
-              <button
+            </button>
+            
+            <button
                 onClick={() => setShowRoster(!showRoster)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   showRoster ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1554,9 +1554,9 @@ const MasterScheduleSystem = () => {
               >
                 <Users className="w-3 h-3 lg:w-4 lg:h-4" />
                 Roster
-              </button>
-
-              <button
+            </button>
+            
+            <button
                 onClick={() => setShowSites(!showSites)}
                 className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
                   showSites ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1564,7 +1564,7 @@ const MasterScheduleSystem = () => {
               >
                 <MapPin className="w-3 h-3 lg:w-4 lg:h-4" />
                 Sites
-              </button>
+            </button>
 
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
@@ -1582,7 +1582,7 @@ const MasterScheduleSystem = () => {
           {loggedInStaff && !isAuthenticated && (
             <div className={`text-xs lg:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
               Viewing {loggedInStaff}'s personal schedule
-            </div>
+          </div>
           )}
         </div>
 
@@ -2285,14 +2285,14 @@ const MasterScheduleSystem = () => {
                         >
                           Clear All
                         </button>
-                      </div>
-                      <div className="space-y-2">
+            </div>
+                <div className="space-y-2">
                         {lateList.map((late, index) => (
                           <div key={index} className={`p-2 rounded ${darkMode ? 'bg-orange-700' : 'bg-orange-100'}`}>
                             <div className="flex items-center justify-between">
                               <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                                 {late.staff} - {late.day}
-                              </span>
+                      </span>
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => {
@@ -2347,10 +2347,10 @@ const MasterScheduleSystem = () => {
                                 Marked: {new Date(late.timestamp).toLocaleString()}
                               </div>
                             )}
-                          </div>
-                        ))}
-                      </div>
                     </div>
+                  ))}
+                </div>
+              </div>
                   ))}
                 </div>
               </div>
@@ -2382,13 +2382,13 @@ const MasterScheduleSystem = () => {
                           Clear All
                         </button>
                       </div>
-                      <div className="space-y-2">
+                <div className="space-y-2">
                         {callOffList.map((callOff, index) => (
                           <div key={index} className={`p-2 rounded ${darkMode ? 'bg-red-700' : 'bg-red-100'}`}>
                             <div className="flex items-center justify-between">
                               <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                                 {callOff.staff}
-                              </span>
+                      </span>
                               <button
                                 onClick={() => {
                                   setCallOffs(prev => {
@@ -2430,7 +2430,7 @@ const MasterScheduleSystem = () => {
                       <div className="flex items-center justify-between mb-2">
                         <span className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                           {new Date(date).toLocaleDateString()} - PTO Requests
-                        </span>
+                      </span>
                         <button
                           onClick={() => {
                             setPtoRequests(prev => {
@@ -2481,13 +2481,13 @@ const MasterScheduleSystem = () => {
                                 Requested: {new Date(pto.timestamp).toLocaleString()}
                               </div>
                             )}
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   ))}
                 </div>
               </div>
+                  ))}
+            </div>
+            </div>
             </div>
 
             {/* Early Arrival Requests */}
@@ -2544,8 +2544,8 @@ const MasterScheduleSystem = () => {
                           {request.reason && (
                             <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                               Reason: {request.reason}
-                            </div>
-                          )}
+          </div>
+        )}
                           {request.timestamp && (
                             <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                               Requested: {new Date(request.timestamp).toLocaleString()}
@@ -2844,7 +2844,7 @@ const MasterScheduleSystem = () => {
               <div>
                 <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   PTO Requests ({Object.values(ptoRequests).flat().length})
-                </h4>
+                        </h4>
                 <div className="space-y-3">
                   {Object.entries(ptoRequests).map(([date, requests]) => (
                     <div key={date} className={`p-4 rounded-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
@@ -2872,9 +2872,9 @@ const MasterScheduleSystem = () => {
                             <div className="flex items-center justify-between">
                               <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                                 {typeof request === 'string' ? request : request.staff}
-                              </span>
+                          </span>
                               <div className="flex gap-2">
-                                <button
+                          <button
                                   onClick={() => {
                                     // Approve the request
                                     const approvedRequest = {
@@ -2937,10 +2937,10 @@ const MasterScheduleSystem = () => {
                                     });
                                   }}
                                   className="text-red-500 hover:text-red-700 text-xs"
-                                >
-                                  Remove
-                                </button>
-                              </div>
+                          >
+                            Remove
+                          </button>
+                        </div>
                             </div>
                             {typeof request === 'object' && request.reason && (
                               <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -3144,7 +3144,7 @@ const MasterScheduleSystem = () => {
                         <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                           {new Date(date).toLocaleDateString()}
                         </span>
-                        <button
+                              <button
                           onClick={() => {
                             setPickupRequests(prev => {
                               const updated = { ...prev };
@@ -3156,7 +3156,7 @@ const MasterScheduleSystem = () => {
                           className="text-red-600 hover:text-red-800 text-sm"
                         >
                           Clear All
-                        </button>
+                              </button>
                       </div>
                       <div className="space-y-2">
                         {requests.map((request, index) => (
@@ -3187,9 +3187,9 @@ const MasterScheduleSystem = () => {
                             {typeof request === 'object' && request.reason && (
                               <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                 Reason: {request.reason}
-                              </div>
-                            )}
-                          </div>
+                        </div>
+                      )}
+                    </div>
                         ))}
                       </div>
                     </div>
@@ -3251,8 +3251,8 @@ const MasterScheduleSystem = () => {
                             {request.approvedAt && (
                               <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                 Approved: {new Date(request.approvedAt).toLocaleString()}
-                              </div>
-                            )}
+              </div>
+            )}
                           </div>
                         ))}
                       </div>
@@ -3277,7 +3277,7 @@ const MasterScheduleSystem = () => {
                     : `${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`
                 }`}
               >
-                Week {i + 1}
+                {getWeekDisplayText(i + 1)}
               </button>
             ))}
           </div>
@@ -3286,28 +3286,28 @@ const MasterScheduleSystem = () => {
         {/* Individual Staff Selector - Only show when not logged in as staff */}
         {viewMode === 'individual' && !loggedInStaff && (
           <div className="flex justify-center mb-6">
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-2 flex gap-2`}>
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-2 flex gap-2`}>
               {['Kyle', 'Mia', 'Tyler', 'Mike'].map((staff) => (
-                <button
+              <button
                   key={staff}
                   onClick={() => setSelectedStaffView(staff)}
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
+                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
                     selectedStaffView === staff
                       ? `${staffInfo[staff].color} text-white shadow-lg transform scale-105`
-                      : `${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`
-                  }`}
-                >
+                    : `${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`
+                }`}
+              >
                   <div className={`w-3 h-3 rounded-full ${staffInfo[staff].color.replace('bg-', 'bg-')}`}></div>
                   {staff}
-                </button>
-              ))}
-            </div>
+              </button>
+            ))}
           </div>
+        </div>
         )}
 
         {/* Stats Cards - Master Only (hide when staff is logged in) */}
         {isAuthenticated && !loggedInStaff && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             {Object.entries(baseHours).map(([staff, hours]) => (
               <div
                 key={staff}
@@ -3345,7 +3345,7 @@ const MasterScheduleSystem = () => {
                 )}
               </div>
             ))}
-          </div>
+        </div>
         )}
 
         {/* Schedule Grid */}
@@ -3744,55 +3744,55 @@ const MasterScheduleSystem = () => {
                 </div>
               </div>
             ) : viewMode === 'master' ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {days.map((day, index) => {
                   const date = getWeekDates(currentWeek)[index];
                   return (
-                    <div
-                      key={day}
-                      className={`border rounded-xl transition-all duration-300 ${
-                        darkMode ? 'border-gray-600' : 'border-gray-200'
-                      }`}
-                    >
-                      <div className={`p-4 rounded-t-xl ${
-                        day === 'Saturday' ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 
-                        darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                      }`}>
-                        <h3 className={`font-bold text-lg ${
-                          day === 'Saturday' ? 'text-white' : darkMode ? 'text-white' : 'text-gray-800'
-                        }`}>
-                          {day} {day === 'Saturday' && '🎉'}
-                        </h3>
+                <div
+                  key={day}
+                  className={`border rounded-xl transition-all duration-300 ${
+                    darkMode ? 'border-gray-600' : 'border-gray-200'
+                  }`}
+                >
+                  <div className={`p-4 rounded-t-xl ${
+                    day === 'Saturday' ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 
+                    darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                  }`}>
+                    <h3 className={`font-bold text-lg ${
+                      day === 'Saturday' ? 'text-white' : darkMode ? 'text-white' : 'text-gray-800'
+                    }`}>
+                      {day} {day === 'Saturday' && '🎉'}
+                    </h3>
                         <p className={`text-sm mt-1 ${
                           day === 'Saturday' ? 'text-white opacity-90' : darkMode ? 'text-gray-300' : 'text-gray-600'
                         }`}>
                           {formatDate(date)}
                         </p>
-                      </div>
-                    
-                      <div className="p-4 space-y-3">
+                  </div>
+                  
+                  <div className="p-4 space-y-3">
                         {locations.filter(location => !(day === 'Monday' && location === 'Safepoint')).map((location) => {
                           const assignment = currentSchedule?.assignments?.[day]?.[location] || 
                           (location && location !== 'undefined' ? currentSchedule?.assignments?.[day]?.[location] : null);
-                          const isOpen = !assignment;
+                      const isOpen = !assignment;
                           const shiftHours = day === 'Saturday' ? saturdayHours[location] : baseShiftHours[location];
                           const customDuration = getShiftDuration(day, location, currentWeek);
-                          
-                          return (
-                            <div
-                              key={location}
-                              className={`rounded-lg p-3 transition-all duration-200 ${
+                      
+                      return (
+                        <div
+                          key={location}
+                          className={`rounded-lg p-3 transition-all duration-200 ${
                                 isShiftCancelled(day, location, currentWeek)
                                   ? 'bg-gray-400 dark:bg-gray-500 border-2 border-dashed border-gray-500 opacity-60'
                                   : isOpen 
-                                    ? 'bg-gray-300 dark:bg-gray-600 border-2 border-dashed border-gray-400' 
-                                    : `${staffInfo[assignment].color} text-white`
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="font-semibold flex items-center gap-2">
-                                  {locationIcons[location]} {location}
-                                </span>
+                              ? 'bg-gray-300 dark:bg-gray-600 border-2 border-dashed border-gray-400' 
+                              : `${staffInfo[assignment].color} text-white`
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold flex items-center gap-2">
+                              {locationIcons[location]} {location}
+                            </span>
                                 <div className="flex items-center gap-1">
                                   {isShiftCancelled(day, location, currentWeek) && (
                                     <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full">
@@ -3804,14 +3804,14 @@ const MasterScheduleSystem = () => {
                                       LATE
                                     </span>
                                   )}
-                                  {isOpen && (
-                                    <span className="text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
-                                      PICKUP
-                                    </span>
-                                  )}
+                            {isOpen && (
+                              <span className="text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
+                                PICKUP
+                              </span>
+                            )}
                                 </div>
-                              </div>
-                              
+                          </div>
+                          
 
                                                               <div>
                                   {assignment && (
@@ -3822,8 +3822,8 @@ const MasterScheduleSystem = () => {
                                   
                                   {/* Staff Assignment Dropdown */}
                                   <div className="mt-2">
-                                    <select
-                                      value={assignment || ''}
+                            <select
+                              value={assignment || ''}
                                       onChange={(e) => {
                                         const newStaff = e.target.value || null;
                                         console.log('Changing assignment:', day, location, assignment, '->', newStaff);
@@ -3855,9 +3855,9 @@ const MasterScheduleSystem = () => {
                                     >
                                       <option value="">No Assignment</option>
                                       {['Kyle', 'Mia', 'Tyler', 'Mike'].map(staff => (
-                                        <option key={staff} value={staff}>{staff}</option>
-                                      ))}
-                                    </select>
+                                <option key={staff} value={staff}>{staff}</option>
+                              ))}
+                            </select>
                                     
                                     {/* Restore Staff Off Status */}
                                     {['Kyle', 'Mia', 'Tyler', 'Mike'].map(staff => {
@@ -3875,7 +3875,7 @@ const MasterScheduleSystem = () => {
                                       }
                                       return null;
                                     })}
-                                  </div>
+                              </div>
                                   
                                   <div className="text-xs opacity-75 flex items-center gap-1">
                                     <Clock className="w-3 h-3" />
@@ -3988,7 +3988,7 @@ const MasterScheduleSystem = () => {
                                         );
                                       }
                                     })()}
-                                  </div>
+                              </div>
                                   
                                   {/* Early Arrival Request/Approval Section for Master View */}
                                   {assignment && (() => {
@@ -4012,17 +4012,17 @@ const MasterScheduleSystem = () => {
                                         <div className="mt-2 p-2 bg-green-100 rounded border border-green-300">
                                           <div className="text-xs text-green-800 font-semibold">
                                             ✅ {assignment} - Approved Early Arrival
-                                          </div>
+                            </div>
                                           <div className="text-xs text-green-700">
                                             {approvedEarlyArrival.earlyStart} - {approvedEarlyArrival.currentStart}
-                                          </div>
+                              </div>
                                           <button
                                             onClick={() => removeApprovedEarlyArrival(dateKey, approvedEarlyArrivals[dateKey].findIndex(req => req.staff === assignment && req.day === day))}
                                             className="mt-1 w-full px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                                           >
                                             Revert to Original Time
                                           </button>
-                                        </div>
+                              </div>
                                       );
                                     } else if (pendingRequest) {
                                       // Show pending request with approve/deny options
@@ -4030,7 +4030,7 @@ const MasterScheduleSystem = () => {
                                         <div className="mt-2 p-2 bg-yellow-100 rounded border border-yellow-300">
                                           <div className="text-xs text-yellow-800 font-semibold">
                                             ⏳ {assignment} - Early Arrival Requested
-                                          </div>
+                            </div>
                                           <div className="text-xs text-yellow-700">
                                             {pendingRequest.earlyStart} - {pendingRequest.currentStart}
                                           </div>
@@ -4055,9 +4055,9 @@ const MasterScheduleSystem = () => {
                                     return null;
                                   })()}
                                 </div>
-                            </div>
-                          );
-                        })}
+                        </div>
+                      );
+                    })}
                       </div>
                     </div>
                   );
@@ -4089,7 +4089,7 @@ const MasterScheduleSystem = () => {
                   <div className="flex items-center gap-2">
                     <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                       {currentMonthYear.month} {currentMonthYear.year}
-                    </div>
+                      </div>
                     <div className="flex gap-1">
                       <button
                         onClick={() => setCurrentWeek(1)}
@@ -4147,8 +4147,8 @@ const MasterScheduleSystem = () => {
                         <option value="44">Jun 2025 ({getWeekDisplayText(44)} - {getWeekDisplayText(47)})</option>
                         <option value="48">Jul 2025 ({getWeekDisplayText(48)} - {getWeekDisplayText(52)})</option>
                       </select>
-                    </div>
                   </div>
+                </div>
                 </div>
                 
                 <div className={`p-4 rounded-lg ${staffInfo[selectedStaffView].color} text-white`}>
@@ -4240,19 +4240,19 @@ const MasterScheduleSystem = () => {
                                       >
                                         {opp.location}: {opp.earlyStart} ({opp.hoursAvailable}h early)
                                       </button>
-                                    ))}
-                                  </div>
+              ))}
+            </div>
                                 );
                               }
                               return null;
                             })()}
-                          </div>
+          </div>
                         </div>
                       </div>
                     );
                   })}
-                </div>
-                
+        </div>
+
                 {getStaffSchedule(selectedStaffView, currentWeek).length === 0 && (
                   <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <p>No shifts assigned this week</p>
@@ -4266,50 +4266,50 @@ const MasterScheduleSystem = () => {
 
         {/* Schedule Information - Master Only */}
         {isAuthenticated && (
-          <div className={`mt-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
-            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              <Settings className="w-5 h-5" />
-              Schedule System Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Operating Hours (Strict Limits)</h4>
-                <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  <li>🌆 <strong>Short North:</strong> Mon-Fri 7:30a-7:30p, Sat 9a-3:30p</li>
-                  <li>🏢 <strong>KL:</strong> Mon-Fri 7:30a-7:30p, Sat 9a-3:30p</li>
+        <div className={`mt-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+          <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            <Settings className="w-5 h-5" />
+            Schedule System Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Operating Hours (Strict Limits)</h4>
+              <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <li>🌆 <strong>Short North:</strong> Mon-Fri 7:30a-7:30p, Sat 9a-3:30p</li>
+                <li>🏢 <strong>KL:</strong> Mon-Fri 7:30a-7:30p, Sat 9a-3:30p</li>
                   <li>🛡️ <strong>Safepoint:</strong> Tue-Fri 11a-7:00p, Sat 9a-2:00p (closed Mondays)</li>
-                  <li>⚠️ <strong>No shifts outside these hours</strong></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>System Rules</h4>
-                <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  <li>🎯 <strong>Target:</strong> 40 hours per person per week</li>
+                <li>⚠️ <strong>No shifts outside these hours</strong></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>System Rules</h4>
+              <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <li>🎯 <strong>Target:</strong> 40 hours per person per week</li>
                   <li>🚫 <strong>Mike:</strong> Mondays off, works Tuesday-Saturday at Short North (40.5 hours)</li>
                   <li>🔄 <strong>KL Saturday rotation:</strong> Kyle → Tyler → Mia → Kyle (4-week cycle)</li>
                   <li>🛡️ <strong>Safepoint rotation:</strong> Staff rotate through Safepoint assignments</li>
                   <li>📅 <strong>Start date:</strong> Monday, August 5th, 2024</li>
-                  <li>⚡ <strong>Pickup shifts:</strong> Within business hours only</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>JotForm Integration</h4>
-                <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  <li>📊 <strong>Export:</strong> JSON data for form setup</li>
-                  <li>📝 <strong>Pickup form:</strong> Staff can sign up for open shifts</li>
-                  <li>🔄 <strong>Updates:</strong> Import signups back to system</li>
-                  <li>📱 <strong>Mobile friendly:</strong> Easy access for staff</li>
-                </ul>
-              </div>
+                <li>⚡ <strong>Pickup shifts:</strong> Within business hours only</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>JotForm Integration</h4>
+              <ul className={`space-y-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <li>📊 <strong>Export:</strong> JSON data for form setup</li>
+                <li>📝 <strong>Pickup form:</strong> Staff can sign up for open shifts</li>
+                <li>🔄 <strong>Updates:</strong> Import signups back to system</li>
+                <li>📱 <strong>Mobile friendly:</strong> Easy access for staff</li>
+              </ul>
             </div>
           </div>
+        </div>
         )}
 
         {/* Footer - Master Only */}
         {isAuthenticated && (
-          <div className={`text-center mt-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            <p>🎯 40-Hour Master Schedule System • Base assignments + voluntary pickups • Ready for JotForm integration</p>
-          </div>
+        <div className={`text-center mt-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <p>🎯 40-Hour Master Schedule System • Base assignments + voluntary pickups • Ready for JotForm integration</p>
+        </div>
         )}
       </div>
     </div>
