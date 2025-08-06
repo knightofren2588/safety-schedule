@@ -30,7 +30,7 @@ const MasterScheduleSystem = () => {
     return Math.max(1, Math.min(TOTAL_WEEKS, diffWeeks + 1)); // Allow all 52 weeks
   });
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showPickupShifts, setShowPickupShifts] = useState(false);
+
   // eslint-disable-next-line no-unused-vars
   const [pickupSignups] = useState(() => {
     const saved = localStorage.getItem('safetySchedule_pickupSignups');
@@ -941,13 +941,20 @@ const MasterScheduleSystem = () => {
     // Update the actual schedule to reflect early arrival
     
     // Update custom times to reflect early arrival
+    // Only set the start time to early arrival, end time remains editable
     const shiftKey = `${request.weekNum}-${request.day}-${request.location}`;
+    
+    // Get the original shift end time
+    const originalShift = getCustomShiftTime(request.day, request.location, request.weekNum) || 
+                         getOperatingHours(request.location, request.day);
+    const originalEndTime = originalShift?.end || '7:30p';
+    
     setCustomTimes(prev => {
       const updated = {
         ...prev,
         [shiftKey]: {
           start: request.earlyStart,
-          end: request.currentStart // Keep the original end time
+          end: originalEndTime // Keep original end time, but it will be editable
         }
       };
       localStorage.setItem('safetySchedule_customTimes', JSON.stringify(updated));
@@ -1492,15 +1499,7 @@ const MasterScheduleSystem = () => {
                 🔄 Restore Schedule
               </button>
 
-              <button
-                onClick={() => setShowPickupShifts(!showPickupShifts)}
-                className={`flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg transition-colors text-xs lg:text-sm ${
-                  showPickupShifts ? 'bg-red-600 text-white' : darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Upload className="w-3 h-3 lg:w-4 lg:h-4" />
-                Pickup Shifts
-              </button>
+
 
               <button
                 onClick={() => setShowCallOffManager(!showCallOffManager)}
@@ -3558,9 +3557,7 @@ const MasterScheduleSystem = () => {
                                     const approvedEarlyArrival = approvedEarlyArrivals[dateKey]?.find(
                                       req => req.staff === assignment && req.day === day
                                     );
-                                    
-                                    const customTime = getCustomShiftTime(day, location, currentWeek);
-                                    
+
                                     if (approvedEarlyArrival) {
                                       // Show approved early arrival with revert option
                                       return (
