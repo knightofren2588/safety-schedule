@@ -2193,31 +2193,7 @@ const MasterScheduleSystem = () => {
                                   <option value="remove">Remove Status</option>
                                 </select>
                                 
-                                {/* Early Arrival Opportunities */}
-                                {(() => {
-                                  const opportunities = calculateEarlyArrivalOpportunities(staff, day, currentWeek);
-                                  if (opportunities.length > 0) {
-                                    return (
-                                      <div className="space-y-1 mt-1">
-                                        <div className="text-xs font-semibold text-blue-600">Early Options:</div>
-                                        {opportunities.map((opp, index) => (
-                                          <button
-                                            key={index}
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              requestEarlyArrival(staff, day, currentWeek, opp);
-                                            }}
-                                            className="w-full p-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                                            title={opp.reason}
-                                          >
-                                            {opp.location} {opp.earlyStart}
-                                          </button>
-                                        ))}
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                })()}
+
                               </div>
                             ) : (
                               <div className="text-center text-xs opacity-70">No Shift</div>
